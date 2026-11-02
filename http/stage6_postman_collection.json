@@ -1,0 +1,642 @@
+{
+  "info": {
+    "name": "Repair Management \u2014 Stage 6 Finance",
+    "description": "Manual received payments only. Set company IDs and credentials. The tax amount is supplied by management; no tax calculation. Never store real passwords in checked-in Postman collections.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:8081"
+    },
+    {
+      "key": "companyId",
+      "value": "1"
+    },
+    {
+      "key": "invoiceId",
+      "value": "1"
+    },
+    {
+      "key": "orderId",
+      "value": "1"
+    },
+    {
+      "key": "repairId",
+      "value": "1"
+    },
+    {
+      "key": "feeId",
+      "value": "1"
+    },
+    {
+      "key": "ownerEmail",
+      "value": "owner@example.com"
+    },
+    {
+      "key": "ownerPassword",
+      "value": "DemoPassword123!"
+    },
+    {
+      "key": "customerEmail",
+      "value": "customer@example.com"
+    },
+    {
+      "key": "customerPassword",
+      "value": "DemoPassword123!"
+    },
+    {
+      "key": "platformEmail",
+      "value": "platform-admin@example.com"
+    },
+    {
+      "key": "platformPassword",
+      "value": "AdminPassword123!"
+    }
+  ],
+  "item": [
+    {
+      "name": "1 Create order invoice",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "auth": {
+          "type": "basic",
+          "basic": [
+            {
+              "key": "username",
+              "value": "{{ownerEmail}}",
+              "type": "string"
+            },
+            {
+              "key": "password",
+              "value": "{{ownerPassword}}",
+              "type": "string"
+            }
+          ]
+        },
+        "url": {
+          "raw": "{{baseUrl}}/api/companies/{{companyId}}/invoices",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "companies",
+            "{{companyId}}",
+            "invoices"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"orderId\": \"{{orderId}}\",\n  \"taxAmount\": 0\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      }
+    },
+    {
+      "name": "1b Create repair invoice",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "auth": {
+          "type": "basic",
+          "basic": [
+            {
+              "key": "username",
+              "value": "{{ownerEmail}}",
+              "type": "string"
+            },
+            {
+              "key": "password",
+              "value": "{{ownerPassword}}",
+              "type": "string"
+            }
+          ]
+        },
+        "url": {
+          "raw": "{{baseUrl}}/api/companies/{{companyId}}/invoices",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "companies",
+            "{{companyId}}",
+            "invoices"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"repairId\": \"{{repairId}}\",\n  \"taxAmount\": 0\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      }
+    },
+    {
+      "name": "2 Issue invoice",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "auth": {
+          "type": "basic",
+          "basic": [
+            {
+              "key": "username",
+              "value": "{{ownerEmail}}",
+              "type": "string"
+            },
+            {
+              "key": "password",
+              "value": "{{ownerPassword}}",
+              "type": "string"
+            }
+          ]
+        },
+        "url": {
+          "raw": "{{baseUrl}}/api/companies/{{companyId}}/invoices/{{invoiceId}}/issue",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "companies",
+            "{{companyId}}",
+            "invoices",
+            "{{invoiceId}}",
+            "issue"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"dueAt\": \"2027-12-31T00:00:00\"\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      }
+    },
+    {
+      "name": "3 Customer invoice view",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "auth": {
+          "type": "basic",
+          "basic": [
+            {
+              "key": "username",
+              "value": "{{customerEmail}}",
+              "type": "string"
+            },
+            {
+              "key": "password",
+              "value": "{{customerPassword}}",
+              "type": "string"
+            }
+          ]
+        },
+        "url": {
+          "raw": "{{baseUrl}}/api/companies/{{companyId}}/invoices/{{invoiceId}}",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "companies",
+            "{{companyId}}",
+            "invoices",
+            "{{invoiceId}}"
+          ]
+        }
+      }
+    },
+    {
+      "name": "4 Record received payment (manual only)",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "auth": {
+          "type": "basic",
+          "basic": [
+            {
+              "key": "username",
+              "value": "{{ownerEmail}}",
+              "type": "string"
+            },
+            {
+              "key": "password",
+              "value": "{{ownerPassword}}",
+              "type": "string"
+            }
+          ]
+        },
+        "url": {
+          "raw": "{{baseUrl}}/api/companies/{{companyId}}/invoices/{{invoiceId}}/payments",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "companies",
+            "{{companyId}}",
+            "invoices",
+            "{{invoiceId}}",
+            "payments"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"amount\": 80,\n  \"method\": \"BANK_TRANSFER\",\n  \"reference\": \"BANK-TRANSFER-2026-001\"\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      }
+    },
+    {
+      "name": "5 Company expense",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "auth": {
+          "type": "basic",
+          "basic": [
+            {
+              "key": "username",
+              "value": "{{ownerEmail}}",
+              "type": "string"
+            },
+            {
+              "key": "password",
+              "value": "{{ownerPassword}}",
+              "type": "string"
+            }
+          ]
+        },
+        "url": {
+          "raw": "{{baseUrl}}/api/companies/{{companyId}}/expenses",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "companies",
+            "{{companyId}}",
+            "expenses"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"category\": \"RENT\",\n  \"description\": \"Workshop rent\",\n  \"amount\": 200,\n  \"expenseDate\": \"2026-10-22\"\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      }
+    },
+    {
+      "name": "6 Company overview",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "auth": {
+          "type": "basic",
+          "basic": [
+            {
+              "key": "username",
+              "value": "{{ownerEmail}}",
+              "type": "string"
+            },
+            {
+              "key": "password",
+              "value": "{{ownerPassword}}",
+              "type": "string"
+            }
+          ]
+        },
+        "url": {
+          "raw": "{{baseUrl}}/api/companies/{{companyId}}/finance/overview",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "companies",
+            "{{companyId}}",
+            "finance",
+            "overview"
+          ]
+        }
+      }
+    },
+    {
+      "name": "7 List company invoices",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "auth": {
+          "type": "basic",
+          "basic": [
+            {
+              "key": "username",
+              "value": "{{ownerEmail}}",
+              "type": "string"
+            },
+            {
+              "key": "password",
+              "value": "{{ownerPassword}}",
+              "type": "string"
+            }
+          ]
+        },
+        "url": {
+          "raw": "{{baseUrl}}/api/companies/{{companyId}}/invoices",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "companies",
+            "{{companyId}}",
+            "invoices"
+          ]
+        }
+      }
+    },
+    {
+      "name": "8 Customer invoices",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "auth": {
+          "type": "basic",
+          "basic": [
+            {
+              "key": "username",
+              "value": "{{customerEmail}}",
+              "type": "string"
+            },
+            {
+              "key": "password",
+              "value": "{{customerPassword}}",
+              "type": "string"
+            }
+          ]
+        },
+        "url": {
+          "raw": "{{baseUrl}}/api/companies/{{companyId}}/invoices/mine",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "companies",
+            "{{companyId}}",
+            "invoices",
+            "mine"
+          ]
+        }
+      }
+    },
+    {
+      "name": "9 Company expenses",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "auth": {
+          "type": "basic",
+          "basic": [
+            {
+              "key": "username",
+              "value": "{{ownerEmail}}",
+              "type": "string"
+            },
+            {
+              "key": "password",
+              "value": "{{ownerPassword}}",
+              "type": "string"
+            }
+          ]
+        },
+        "url": {
+          "raw": "{{baseUrl}}/api/companies/{{companyId}}/expenses",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "companies",
+            "{{companyId}}",
+            "expenses"
+          ]
+        }
+      }
+    },
+    {
+      "name": "10 Platform fee",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "auth": {
+          "type": "basic",
+          "basic": [
+            {
+              "key": "username",
+              "value": "{{platformEmail}}",
+              "type": "string"
+            },
+            {
+              "key": "password",
+              "value": "{{platformPassword}}",
+              "type": "string"
+            }
+          ]
+        },
+        "url": {
+          "raw": "{{baseUrl}}/api/platform/finance/fees",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "platform",
+            "finance",
+            "fees"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"companyId\": \"{{companyId}}\",\n  \"orderId\": \"{{orderId}}\",\n  \"feeType\": \"COMMISSION\",\n  \"amount\": 4\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      }
+    },
+    {
+      "name": "11 Mark fee earned",
+      "request": {
+        "method": "POST",
+        "header": [],
+        "auth": {
+          "type": "basic",
+          "basic": [
+            {
+              "key": "username",
+              "value": "{{platformEmail}}",
+              "type": "string"
+            },
+            {
+              "key": "password",
+              "value": "{{platformPassword}}",
+              "type": "string"
+            }
+          ]
+        },
+        "url": {
+          "raw": "{{baseUrl}}/api/platform/finance/fees/{{feeId}}/earn",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "platform",
+            "finance",
+            "fees",
+            "{{feeId}}",
+            "earn"
+          ]
+        }
+      }
+    },
+    {
+      "name": "12 Platform expense",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "auth": {
+          "type": "basic",
+          "basic": [
+            {
+              "key": "username",
+              "value": "{{platformEmail}}",
+              "type": "string"
+            },
+            {
+              "key": "password",
+              "value": "{{platformPassword}}",
+              "type": "string"
+            }
+          ]
+        },
+        "url": {
+          "raw": "{{baseUrl}}/api/platform/finance/expenses",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "platform",
+            "finance",
+            "expenses"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"category\": \"HOSTING\",\n  \"description\": \"Monthly VPS\",\n  \"amount\": 25,\n  \"currencyCode\": \"EUR\",\n  \"expenseDate\": \"2026-10-22\"\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      }
+    },
+    {
+      "name": "13 Platform overview",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "auth": {
+          "type": "basic",
+          "basic": [
+            {
+              "key": "username",
+              "value": "{{platformEmail}}",
+              "type": "string"
+            },
+            {
+              "key": "password",
+              "value": "{{platformPassword}}",
+              "type": "string"
+            }
+          ]
+        },
+        "url": {
+          "raw": "{{baseUrl}}/api/platform/finance/overview",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "platform",
+            "finance",
+            "overview"
+          ]
+        }
+      }
+    }
+  ]
+}

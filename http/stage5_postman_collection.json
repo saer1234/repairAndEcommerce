@@ -1,0 +1,427 @@
+{
+  "info": {
+    "name": "Repair Management \u2014 Stage 5",
+    "description": "Requires existing company, employee and item created through Stages 2\u20133. Local development Basic Auth only.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:8081"
+    },
+    {
+      "key": "companyId",
+      "value": "1"
+    },
+    {
+      "key": "repairId",
+      "value": "1"
+    },
+    {
+      "key": "ownerEmail",
+      "value": "owner@example.com"
+    },
+    {
+      "key": "ownerPassword",
+      "value": "DemoPassword123!"
+    },
+    {
+      "key": "customerEmail",
+      "value": "customer@example.com"
+    },
+    {
+      "key": "customerPassword",
+      "value": "DemoPassword123!"
+    }
+  ],
+  "item": [
+    {
+      "name": "Create repair",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": "{{baseUrl}}/api/companies/{{companyId}}/repairs",
+        "auth": {
+          "type": "basic",
+          "basic": [
+            {
+              "key": "username",
+              "value": "{{customerEmail}}",
+              "type": "string"
+            },
+            {
+              "key": "password",
+              "value": "{{customerPassword}}",
+              "type": "string"
+            }
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"deviceType\": \"Mobile phone\",\n  \"brand\": \"Samsung\",\n  \"model\": \"S24\",\n  \"issueDescription\": \"Screen is broken\"\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      }
+    },
+    {
+      "name": "My repairs",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": "{{baseUrl}}/api/companies/{{companyId}}/repairs/mine",
+        "auth": {
+          "type": "basic",
+          "basic": [
+            {
+              "key": "username",
+              "value": "{{customerEmail}}",
+              "type": "string"
+            },
+            {
+              "key": "password",
+              "value": "{{customerPassword}}",
+              "type": "string"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "name": "Company repair queue",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": "{{baseUrl}}/api/companies/{{companyId}}/repairs",
+        "auth": {
+          "type": "basic",
+          "basic": [
+            {
+              "key": "username",
+              "value": "{{ownerEmail}}",
+              "type": "string"
+            },
+            {
+              "key": "password",
+              "value": "{{ownerPassword}}",
+              "type": "string"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "name": "Repair details",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": "{{baseUrl}}/api/companies/{{companyId}}/repairs/{{repairId}}",
+        "auth": {
+          "type": "basic",
+          "basic": [
+            {
+              "key": "username",
+              "value": "{{customerEmail}}",
+              "type": "string"
+            },
+            {
+              "key": "password",
+              "value": "{{customerPassword}}",
+              "type": "string"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "name": "Assign staff",
+      "request": {
+        "method": "PUT",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": "{{baseUrl}}/api/companies/{{companyId}}/repairs/{{repairId}}/assignment",
+        "auth": {
+          "type": "basic",
+          "basic": [
+            {
+              "key": "username",
+              "value": "{{ownerEmail}}",
+              "type": "string"
+            },
+            {
+              "key": "password",
+              "value": "{{ownerPassword}}",
+              "type": "string"
+            }
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"employeeId\": 2\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      }
+    },
+    {
+      "name": "Begin diagnosis",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": "{{baseUrl}}/api/companies/{{companyId}}/repairs/{{repairId}}/status",
+        "auth": {
+          "type": "basic",
+          "basic": [
+            {
+              "key": "username",
+              "value": "{{ownerEmail}}",
+              "type": "string"
+            },
+            {
+              "key": "password",
+              "value": "{{ownerPassword}}",
+              "type": "string"
+            }
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"status\": \"DIAGNOSING\",\n  \"note\": \"Checking device\"\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      }
+    },
+    {
+      "name": "Set labor",
+      "request": {
+        "method": "PUT",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": "{{baseUrl}}/api/companies/{{companyId}}/repairs/{{repairId}}/labor",
+        "auth": {
+          "type": "basic",
+          "basic": [
+            {
+              "key": "username",
+              "value": "{{ownerEmail}}",
+              "type": "string"
+            },
+            {
+              "key": "password",
+              "value": "{{ownerPassword}}",
+              "type": "string"
+            }
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"laborCharge\": 100,\n  \"laborCost\": 35\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      }
+    },
+    {
+      "name": "Use part",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": "{{baseUrl}}/api/companies/{{companyId}}/repairs/{{repairId}}/parts",
+        "auth": {
+          "type": "basic",
+          "basic": [
+            {
+              "key": "username",
+              "value": "{{ownerEmail}}",
+              "type": "string"
+            },
+            {
+              "key": "password",
+              "value": "{{ownerPassword}}",
+              "type": "string"
+            }
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"itemId\": 1,\n  \"quantity\": 1\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      }
+    },
+    {
+      "name": "Repair in progress",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": "{{baseUrl}}/api/companies/{{companyId}}/repairs/{{repairId}}/status",
+        "auth": {
+          "type": "basic",
+          "basic": [
+            {
+              "key": "username",
+              "value": "{{ownerEmail}}",
+              "type": "string"
+            },
+            {
+              "key": "password",
+              "value": "{{ownerPassword}}",
+              "type": "string"
+            }
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"status\": \"IN_PROGRESS\",\n  \"note\": \"Replacing screen\"\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      }
+    },
+    {
+      "name": "Complete repair",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": "{{baseUrl}}/api/companies/{{companyId}}/repairs/{{repairId}}/status",
+        "auth": {
+          "type": "basic",
+          "basic": [
+            {
+              "key": "username",
+              "value": "{{ownerEmail}}",
+              "type": "string"
+            },
+            {
+              "key": "password",
+              "value": "{{ownerPassword}}",
+              "type": "string"
+            }
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"status\": \"COMPLETED\",\n  \"note\": \"Ready for pickup\"\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      }
+    },
+    {
+      "name": "Deliver repair",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": "{{baseUrl}}/api/companies/{{companyId}}/repairs/{{repairId}}/status",
+        "auth": {
+          "type": "basic",
+          "basic": [
+            {
+              "key": "username",
+              "value": "{{ownerEmail}}",
+              "type": "string"
+            },
+            {
+              "key": "password",
+              "value": "{{ownerPassword}}",
+              "type": "string"
+            }
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"status\": \"DELIVERED\",\n  \"note\": \"Handed to customer\"\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      }
+    },
+    {
+      "name": "Repair gross profit summary",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": "{{baseUrl}}/api/companies/{{companyId}}/finance/repair-summary",
+        "auth": {
+          "type": "basic",
+          "basic": [
+            {
+              "key": "username",
+              "value": "{{ownerEmail}}",
+              "type": "string"
+            },
+            {
+              "key": "password",
+              "value": "{{ownerPassword}}",
+              "type": "string"
+            }
+          ]
+        }
+      }
+    }
+  ]
+}

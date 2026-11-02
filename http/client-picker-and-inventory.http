@@ -1,0 +1,27 @@
+### Authenticate first using /api/auth/login and copy the accessToken to TOKEN
+@api = http://localhost:8081/api
+@companyId = 1
+@TOKEN = replace-with-your-jwt
+
+### Look up registered clients without company roles (staff only)
+GET {{api}}/companies/{{companyId}}/repairs/eligible-clients?q=ali
+Authorization: Bearer {{TOKEN}}
+
+### Open repair for selected client ID (staff only)
+POST {{api}}/companies/{{companyId}}/repairs/for-client
+Authorization: Bearer {{TOKEN}}
+Content-Type: application/json
+
+{
+  "clientId": 15,
+  "clientPhone": "+96170123456",
+  "deviceType": "Phone",
+  "brand": "Samsung",
+  "model": "S24",
+  "issueDescription": "Broken screen"
+}
+
+### Inventory list is already scoped to the selected company.
+### Angular Store Inventory now performs instant local text filtering.
+GET {{api}}/companies/{{companyId}}/inventory/items
+Authorization: Bearer {{TOKEN}}

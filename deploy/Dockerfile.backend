@@ -1,0 +1,20 @@
+# syntax=docker/dockerfile:1.7
+# Java 21 and Maven run INSIDE Docker, not on your VPS host.
+FROM maven:3.9-eclipse-temurin-21 AS build
+WORKDIR /build
+COPY pom.xml ./
+RUN --mount=type=cache,target=/root/.m2 mvn -B -ntp dependency:go-offline
+COPY src ./src
+# Run the complete test suite when building the image. A failing test blocks deployment.
+RUN --mount=type=cache,target=/root/.m2 mvn -B -ntp clean package
+
+FROM eclipse-temurin:21-jre-jammy
+RUN groupadd --system --gid 10001 repair \
+    && useradd --system --uid 10001 --gid repair --home /app repair \
+    && mkdir -p /data/item-images /app \
+    && chown -R repair:repair /data/item-images /app
+WORKDIR /app
+COPY --from=build --chown=repair:repair /build/target/*.jar /app/app.jar
+USER repair
+EXPOSE 8081
+ENTRYPOINT ["java", "-jar", "/app/app.jar"]

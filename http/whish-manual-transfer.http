@@ -1,0 +1,51 @@
+@host = http://localhost:8081
+@companyId = 1
+@orderId = 1
+@invoiceId = 1
+@transferId = 1
+@clientJwt = REPLACE_CLIENT_ACCESS_TOKEN
+@managerJwt = REPLACE_MANAGER_ACCESS_TOKEN
+
+### 1. Owner/Manager configures Whish receiving wallet
+PUT {{host}}/api/companies/{{companyId}}/whish/settings
+Authorization: Bearer {{managerJwt}}
+Content-Type: application/json
+
+{"phone":"+96170123456"}
+
+### 2. Client reads order payment instructions
+GET {{host}}/api/companies/{{companyId}}/orders/{{orderId}}/whish/instructions
+Authorization: Bearer {{clientJwt}}
+
+### 3. Client reports that they transferred money in the Whish app
+POST {{host}}/api/companies/{{companyId}}/orders/{{orderId}}/whish/transfers
+Authorization: Bearer {{clientJwt}}
+Content-Type: application/json
+
+{"reference":"EXAMPLE-REAL-WHISH-TRANSFER-REFERENCE","senderName":"Example Sender","senderPhone":"+96170123456"}
+
+### 4. Owner/Manager reviews pending claim and checks their wallet app
+GET {{host}}/api/companies/{{companyId}}/whish/transfers
+Authorization: Bearer {{managerJwt}}
+
+### 5. AFTER verifying the settled transfer in Whish, manager confirms
+POST {{host}}/api/companies/{{companyId}}/whish/transfers/{{transferId}}/verify
+Authorization: Bearer {{managerJwt}}
+
+### Or reject with documented reason
+POST {{host}}/api/companies/{{companyId}}/whish/transfers/{{transferId}}/reject
+Authorization: Bearer {{managerJwt}}
+Content-Type: application/json
+
+{"note":"No matching settled transfer received"}
+
+### Client can also pay a repair-issued invoice (not a draft)
+GET {{host}}/api/companies/{{companyId}}/invoices/{{invoiceId}}/whish/instructions
+Authorization: Bearer {{clientJwt}}
+
+### Submit invoice transfer
+POST {{host}}/api/companies/{{companyId}}/invoices/{{invoiceId}}/whish/transfers
+Authorization: Bearer {{clientJwt}}
+Content-Type: application/json
+
+{"reference":"ANOTHER-REAL-TRANSFER-REFERENCE","senderName":"Example Sender","senderPhone":"+96170123456"}

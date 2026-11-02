@@ -1,0 +1,69 @@
+### Angular repair-workspace backend smoke requests (JWT — Stage 7)
+### Use tokens from POST /api/auth/login. Populate variables below.
+@base = http://localhost:8081/api
+@companyId = 1
+@repairId = 1
+@employeeUserId = 2
+@itemId = 1
+@customerToken = REPLACE_WITH_CUSTOMER_ACCESS_TOKEN
+@managerToken = REPLACE_WITH_MANAGER_ACCESS_TOKEN
+@employeeToken = REPLACE_WITH_ASSIGNED_EMPLOYEE_ACCESS_TOKEN
+
+### Customer creates a repair
+POST {{base}}/companies/{{companyId}}/repairs
+Authorization: Bearer {{customerToken}}
+Content-Type: application/json
+
+{"deviceType":"Mobile phone","brand":"Samsung","model":"Galaxy S24","issueDescription":"Touch screen not working"}
+
+### Customer lists their own repairs (cost fields absent)
+GET {{base}}/companies/{{companyId}}/repairs/mine
+Authorization: Bearer {{customerToken}}
+
+### Manager sees company's repair queue
+GET {{base}}/companies/{{companyId}}/repairs
+Authorization: Bearer {{managerToken}}
+
+### Manager lists staff (use response `userId`, not membership `id`)
+GET {{base}}/companies/{{companyId}}/members
+Authorization: Bearer {{managerToken}}
+
+### Manager assigns employee
+PUT {{base}}/companies/{{companyId}}/repairs/{{repairId}}/assignment
+Authorization: Bearer {{managerToken}}
+Content-Type: application/json
+
+{"employeeId":{{employeeUserId}}}
+
+### Assigned employee diagnoses repair
+POST {{base}}/companies/{{companyId}}/repairs/{{repairId}}/status
+Authorization: Bearer {{employeeToken}}
+Content-Type: application/json
+
+{"status":"DIAGNOSING","note":"Checking device"}
+
+### Assigned employee views available stock
+GET {{base}}/companies/{{companyId}}/inventory/stock
+Authorization: Bearer {{employeeToken}}
+
+### Assigned employee uses a part
+POST {{base}}/companies/{{companyId}}/repairs/{{repairId}}/parts
+Authorization: Bearer {{employeeToken}}
+Content-Type: application/json
+
+{"itemId":{{itemId}},"quantity":1}
+
+### Manager updates labor charge and cost
+PUT {{base}}/companies/{{companyId}}/repairs/{{repairId}}/labor
+Authorization: Bearer {{managerToken}}
+Content-Type: application/json
+
+{"laborCharge":100.00,"laborCost":35.00}
+
+### Customer detail should not expose laborCost / partsCost / estimatedGrossProfit
+GET {{base}}/companies/{{companyId}}/repairs/{{repairId}}
+Authorization: Bearer {{customerToken}}
+
+### Manager finalized repair profit summary
+GET {{base}}/companies/{{companyId}}/finance/repair-summary
+Authorization: Bearer {{managerToken}}

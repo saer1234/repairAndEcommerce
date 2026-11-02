@@ -1,0 +1,41 @@
+erDiagram
+    COMPANIES ||--o{ ITEMS : lists
+    USERS ||--o{ SHOPPING_CARTS : owns
+    COMPANIES ||--o{ SHOPPING_CARTS : hosts
+    SHOPPING_CARTS ||--o{ CART_ITEMS : contains
+    ITEMS ||--o{ CART_ITEMS : selected
+    USERS ||--o{ CUSTOMER_ORDERS : places
+    COMPANIES ||--o{ CUSTOMER_ORDERS : receives
+    CUSTOMER_ORDERS ||--|{ ORDER_ITEMS : contains
+    ITEMS ||--o{ ORDER_ITEMS : purchased
+    ITEMS ||--o{ STOCK_MOVEMENTS : records
+    USERS ||--o{ STOCK_MOVEMENTS : performs
+    SHOPPING_CARTS {
+      BIGINT id PK
+      BIGINT company_id FK
+      BIGINT customer_id FK
+    }
+    CART_ITEMS {
+      BIGINT id PK
+      BIGINT cart_id FK
+      BIGINT item_id FK
+      INT quantity
+    }
+    CUSTOMER_ORDERS {
+      BIGINT id PK
+      BIGINT company_id FK
+      BIGINT customer_id FK
+      VARCHAR order_number
+      VARCHAR status
+      DECIMAL total_amount
+      DATETIME ordered_at
+      DATETIME completed_at
+    }
+    ORDER_ITEMS {
+      BIGINT id PK
+      BIGINT order_id FK
+      BIGINT item_id FK
+      INT quantity
+      DECIMAL unit_selling_price
+      DECIMAL unit_cost_price
+    }

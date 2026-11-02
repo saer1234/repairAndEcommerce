@@ -1,0 +1,27 @@
+# Stage 7 add-on: item photos. Requires an owner/manager Bearer token and a company/item.
+@base = http://localhost:8081
+@companyId = 1
+@itemId = 1
+@token = PASTE_JWT_ACCESS_TOKEN
+
+### Browse public items (includes imageUrl, which is null until a photo is uploaded)
+GET {{base}}/api/companies/{{companyId}}/items
+
+### Upload/replace item photo (put your example-photo.png file in this same http/ folder)
+POST {{base}}/api/companies/{{companyId}}/items/{{itemId}}/image
+Authorization: Bearer {{token}}
+Content-Type: multipart/form-data; boundary=PhotoBoundary
+
+--PhotoBoundary
+Content-Disposition: form-data; name="file"; filename="screen.png"
+Content-Type: image/png
+
+< ./example-photo.png
+--PhotoBoundary--
+
+### Fetch public photo
+GET {{base}}/api/companies/{{companyId}}/items/{{itemId}}/image
+
+### Delete photo (owner / manager)
+DELETE {{base}}/api/companies/{{companyId}}/items/{{itemId}}/image
+Authorization: Bearer {{token}}

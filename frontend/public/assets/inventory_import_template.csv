@@ -1,0 +1,3 @@
+sku,name,description,costPrice,sellingPrice,openingStock,category,deviceType,deviceBrand,compatibleDevices
+SAM-S24-BAT,Galaxy S24 Battery,Example battery - confirm compatibility,24.00,55.00,8,Battery,Phone,Samsung,Phone|Samsung|Galaxy S24
+APP-IP13-SCR,iPhone 13 display assembly,Verify exact revision,39.00,89.00,7,Screen,Phone,Apple,Phone|Apple|iPhone 13

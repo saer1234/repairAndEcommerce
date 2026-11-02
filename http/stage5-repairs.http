@@ -1,0 +1,80 @@
+### Stage 5 - Repair Management
+### Use IntelliJ HTTP Client. Replace credentials/IDs with yours.
+@base = http://localhost:8081
+@company = 1
+@repair = 1
+@part = 1
+@employee = 2
+
+### 1: Customer creates a repair (Basic Auth: customer credentials)
+POST {{base}}/api/companies/{{company}}/repairs
+Authorization: Basic customer@example.com DemoPassword123!
+Content-Type: application/json
+
+{
+  "deviceType": "Mobile phone",
+  "brand": "Samsung",
+  "model": "S24",
+  "issueDescription": "Screen is cracked; touch response intermittent"
+}
+
+### 2: Customer views only their repairs
+GET {{base}}/api/companies/{{company}}/repairs/mine
+Authorization: Basic customer@example.com DemoPassword123!
+
+### 3: Company owner/manager assigns employee by user ID
+PUT {{base}}/api/companies/{{company}}/repairs/{{repair}}/assignment
+Authorization: Basic owner@example.com DemoPassword123!
+Content-Type: application/json
+
+{"employeeId": {{employee}}}
+
+### 4: Assigned employee (or manager) begins diagnosis
+POST {{base}}/api/companies/{{company}}/repairs/{{repair}}/status
+Authorization: Basic owner@example.com DemoPassword123!
+Content-Type: application/json
+
+{"status":"DIAGNOSING","note":"Diagnosis started"}
+
+### 5: Manager sets labor charge and internal cost
+PUT {{base}}/api/companies/{{company}}/repairs/{{repair}}/labor
+Authorization: Basic owner@example.com DemoPassword123!
+Content-Type: application/json
+
+{"laborCharge":100.00,"laborCost":35.00}
+
+### 6: Employee uses inventory part (deducts stock, saves price snapshot)
+POST {{base}}/api/companies/{{company}}/repairs/{{repair}}/parts
+Authorization: Basic owner@example.com DemoPassword123!
+Content-Type: application/json
+
+{"itemId": {{part}}, "quantity":1}
+
+### 7: Progress to repair-in-progress
+POST {{base}}/api/companies/{{company}}/repairs/{{repair}}/status
+Authorization: Basic owner@example.com DemoPassword123!
+Content-Type: application/json
+
+{"status":"IN_PROGRESS","note":"Screen being replaced"}
+
+### 8: Mark finished
+POST {{base}}/api/companies/{{company}}/repairs/{{repair}}/status
+Authorization: Basic owner@example.com DemoPassword123!
+Content-Type: application/json
+
+{"status":"COMPLETED","note":"Repair finished; ready for pickup"}
+
+### 9: Manager marks delivery
+POST {{base}}/api/companies/{{company}}/repairs/{{repair}}/status
+Authorization: Basic owner@example.com DemoPassword123!
+Content-Type: application/json
+
+{"status":"DELIVERED","note":"Collected by customer"}
+
+### 10: View repair detail as owner (includes internal costs)
+GET {{base}}/api/companies/{{company}}/repairs/{{repair}}
+Authorization: Basic owner@example.com DemoPassword123!
+
+### 11: Repair estimated gross-profit summary (manager only)
+GET {{base}}/api/companies/{{company}}/finance/repair-summary
+Authorization: Basic owner@example.com DemoPassword123!

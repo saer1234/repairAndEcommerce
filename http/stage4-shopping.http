@@ -1,0 +1,62 @@
+### Repair Management — Stage 4 API examples
+### Requires: Stage 1 MySQL/Flyway, Stage 2 user/company and Stage 3 inventory.
+### In IntelliJ .http, replace IDs with actual API response values.
+### Use HTTP Basic Auth for LOCAL TESTING ONLY (project has no JWT yet).
+
+@base = http://localhost:8081
+@companyId = 1
+@itemId = 1
+@orderId = 1
+@customerEmail = customer@example.com
+@customerPassword = DemoPassword123!
+@managerEmail = owner@example.com
+@managerPassword = DemoPassword123!
+
+### 1. Register a customer (run once)
+POST {{base}}/api/auth/register
+Content-Type: application/json
+
+{"fullName":"Customer Test","email":"{{customerEmail}}","password":"{{customerPassword}}"}
+
+### 2. Browse publicly
+GET {{base}}/api/companies/{{companyId}}/items
+
+### 3. Add 2 items to own cart. PUT means set exact quantity (not increment).
+PUT {{base}}/api/companies/{{companyId}}/cart/items/{{itemId}}
+Authorization: Basic {{customerEmail}} {{customerPassword}}
+Content-Type: application/json
+
+{"quantity": 2}
+
+### 4. View cart, current selling prices only
+GET {{base}}/api/companies/{{companyId}}/cart
+Authorization: Basic {{customerEmail}} {{customerPassword}}
+
+### 5. Checkout — atomic; creates CONFIRMED order and stock movements
+POST {{base}}/api/companies/{{companyId}}/checkout
+Authorization: Basic {{customerEmail}} {{customerPassword}}
+
+### 6. View customer order history
+GET {{base}}/api/companies/{{companyId}}/orders/mine
+Authorization: Basic {{customerEmail}} {{customerPassword}}
+
+### 7. Managers can see all company orders
+GET {{base}}/api/companies/{{companyId}}/orders
+Authorization: Basic {{managerEmail}} {{managerPassword}}
+
+### 8. Manager confirms fulfillment (NOT proof of payment)
+POST {{base}}/api/companies/{{companyId}}/orders/{{orderId}}/complete
+Authorization: Basic {{managerEmail}} {{managerPassword}}
+
+### 9. Completed-orders gross profit (not net profit)
+GET {{base}}/api/companies/{{companyId}}/finance/sales-summary
+Authorization: Basic {{managerEmail}} {{managerPassword}}
+
+### ALTERNATIVE to step 8: cancel a DIFFERENT confirmed order before completion
+### Cancellation restocks and cannot be run again on same order.
+POST {{base}}/api/companies/{{companyId}}/orders/{{orderId}}/cancel
+Authorization: Basic {{customerEmail}} {{customerPassword}}
+
+### 10. Remove from cart (use before checkout to test)
+DELETE {{base}}/api/companies/{{companyId}}/cart/items/{{itemId}}
+Authorization: Basic {{customerEmail}} {{customerPassword}}

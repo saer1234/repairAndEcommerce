@@ -1,0 +1,87 @@
+### Stage 6 — Repair Management Finance API
+### Environment: Spring Boot 8081 / MySQL 3306.
+### IntelliJ HTTP Client. Replace IDs and credentials with your own.
+@base = http://localhost:8081
+@companyId = 1
+@orderId = 1
+@repairId = 1
+@invoiceId = 1
+@feeId = 1
+@managerEmail = owner@example.com
+@managerPassword = DemoPassword123!
+@customerEmail = customer@example.com
+@customerPassword = DemoPassword123!
+@platformEmail = platform-admin@example.com
+@platformPassword = AdminPassword123!
+
+### 1. Create DRAFT invoice for a COMPLETED order (manager/owner)
+POST {{base}}/api/companies/{{companyId}}/invoices
+Authorization: Basic {{managerEmail}} {{managerPassword}}
+Content-Type: application/json
+
+{"orderId": {{orderId}}, "taxAmount": 0.00}
+
+### Alternative: invoice for a COMPLETED/DELIVERED repair
+POST {{base}}/api/companies/{{companyId}}/invoices
+Authorization: Basic {{managerEmail}} {{managerPassword}}
+Content-Type: application/json
+
+{"repairId": {{repairId}}, "taxAmount": 0.00}
+
+### 2. Issue the invoice (UTC date/time in the future)
+POST {{base}}/api/companies/{{companyId}}/invoices/{{invoiceId}}/issue
+Authorization: Basic {{managerEmail}} {{managerPassword}}
+Content-Type: application/json
+
+{"dueAt": "2027-12-31T00:00:00"}
+
+### 3. View issued invoice as customer (only own invoice)
+GET {{base}}/api/companies/{{companyId}}/invoices/{{invoiceId}}
+Authorization: Basic {{customerEmail}} {{customerPassword}}
+
+### 4. Record money already received — manual operation, NOT a payment gateway.
+### Use your actual receipt/bank reference. Do NOT record until the payment is verified.
+POST {{base}}/api/companies/{{companyId}}/invoices/{{invoiceId}}/payments
+Authorization: Basic {{managerEmail}} {{managerPassword}}
+Content-Type: application/json
+
+{"amount": 80.00, "method": "BANK_TRANSFER", "reference": "BANK-TRANSFER-2026-001"}
+
+### 5. Expense (company-level)
+POST {{base}}/api/companies/{{companyId}}/expenses
+Authorization: Basic {{managerEmail}} {{managerPassword}}
+Content-Type: application/json
+
+{"category": "RENT", "description": "Monthly workshop rent", "amount": 200.00, "expenseDate": "2026-10-22"}
+
+### 6. Company Finance Dashboard
+GET {{base}}/api/companies/{{companyId}}/finance/overview
+Authorization: Basic {{managerEmail}} {{managerPassword}}
+
+### 7. Platform fee (SUPER_ADMIN only). Created as PENDING, not yet earned.
+POST {{base}}/api/platform/finance/fees
+Authorization: Basic {{platformEmail}} {{platformPassword}}
+Content-Type: application/json
+
+{"companyId": {{companyId}}, "orderId": {{orderId}}, "feeType": "COMMISSION", "amount": 4.00}
+
+### 8. Mark fee earned — manual recognition, NOT a payment capture.
+POST {{base}}/api/platform/finance/fees/{{feeId}}/earn
+Authorization: Basic {{platformEmail}} {{platformPassword}}
+
+### 9. Platform operating expense (SUPER_ADMIN only)
+POST {{base}}/api/platform/finance/expenses
+Authorization: Basic {{platformEmail}} {{platformPassword}}
+Content-Type: application/json
+
+{"category": "HOSTING", "description": "Monthly VPS", "amount": 25.00, "currencyCode": "EUR", "expenseDate": "2026-10-22"}
+
+### 10. Platform Finance dashboard — separately aggregated by currency.
+GET {{base}}/api/platform/finance/overview
+Authorization: Basic {{platformEmail}} {{platformPassword}}
+
+### Other useful GETs:
+### /api/companies/{companyId}/invoices
+### /api/companies/{companyId}/invoices/mine
+### /api/companies/{companyId}/expenses
+### /api/companies/{companyId}/invoices/{invoiceId}/void (POST)

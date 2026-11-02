@@ -1,0 +1,69 @@
+### Configure IntelliJ HTTP Client variables using http-client.private.env.json (do not commit passwords)
+### Replace IDs after creating a user and a company in Stage 2.
+@base = http://localhost:8081
+@company = 1
+@item = 1
+
+### Public catalog (no authentication)
+GET {{base}}/api/companies/{{company}}/items
+
+### Public item details (no acquisition cost)
+GET {{base}}/api/companies/{{company}}/items/{{item}}
+
+### Create item (OWNER/MANAGER)
+POST {{base}}/api/companies/{{company}}/items
+Authorization: Basic {{username}} {{password}}
+Content-Type: application/json
+
+{
+  "sku": "SCREEN-001",
+  "name": "Samsung replacement screen",
+  "description": "Genuine compatible part",
+  "costPrice": 50.00,
+  "sellingPrice": 80.00,
+  "openingStock": 10
+}
+
+### List all items including cost and margins (OWNER/MANAGER)
+GET {{base}}/api/companies/{{company}}/inventory/items
+Authorization: Basic {{username}} {{password}}
+
+### Stock overview with no cost prices (any company member)
+GET {{base}}/api/companies/{{company}}/inventory/stock
+Authorization: Basic {{username}} {{password}}
+
+### Restock +5 (any active company member)
+POST {{base}}/api/companies/{{company}}/inventory/items/{{item}}/movements
+Authorization: Basic {{username}} {{password}}
+Content-Type: application/json
+
+{
+  "movementType": "RESTOCK",
+  "quantityChange": 5,
+  "note": "New delivery"
+}
+
+### Stock movement history
+GET {{base}}/api/companies/{{company}}/inventory/items/{{item}}/movements
+Authorization: Basic {{username}} {{password}}
+
+### Inventory valuation / potential gross margin (OWNER/MANAGER)
+GET {{base}}/api/companies/{{company}}/inventory/summary
+Authorization: Basic {{username}} {{password}}
+
+### Edit item (OWNER/MANAGER; stock updated separately)
+PUT {{base}}/api/companies/{{company}}/items/{{item}}
+Authorization: Basic {{username}} {{password}}
+Content-Type: application/json
+
+{
+  "sku": "SCREEN-001",
+  "name": "Samsung screen, updated",
+  "description": "New catalogue description",
+  "costPrice": 48.00,
+  "sellingPrice": 79.00
+}
+
+### Soft-delete item (OWNER/MANAGER)
+DELETE {{base}}/api/companies/{{company}}/items/{{item}}
+Authorization: Basic {{username}} {{password}}

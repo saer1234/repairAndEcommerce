@@ -1,0 +1,46 @@
+@host = http://localhost:8081/api
+# Replace token and IDs after logging in.
+@token = PASTE_ACCESS_TOKEN_HERE
+@companyId = 1
+
+### Register (one time)
+POST {{host}}/auth/register
+Content-Type: application/json
+
+{"fullName":"Repair Owner","email":"owner@example.com","password":"DemoPassword123!","phone":"123456"}
+
+### Login — copy accessToken into @token above
+POST {{host}}/auth/login
+Content-Type: application/json
+
+{"email":"owner@example.com","password":"DemoPassword123!"}
+
+### Profile
+GET {{host}}/me
+Authorization: Bearer {{token}}
+
+### Public active companies
+GET {{host}}/catalog/companies
+
+### Create a company
+POST {{host}}/companies
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{"name":"Repair Shop","email":"shop@example.com","phone":"123456","address":"Main Street","currencyCode":"EUR"}
+
+### My company memberships
+GET {{host}}/companies
+Authorization: Bearer {{token}}
+
+### Company financial dashboard (owner only)
+GET {{host}}/companies/{{companyId}}/finance/overview
+Authorization: Bearer {{token}}
+
+### My repairs (customer)
+GET {{host}}/companies/{{companyId}}/repairs/mine
+Authorization: Bearer {{token}}
+
+### Platform finance (requires SUPER_ADMIN)
+GET {{host}}/platform/finance/overview
+Authorization: Bearer {{token}}

@@ -1,0 +1,11 @@
+erDiagram
+  COMPANIES ||--o{ INVOICES : issues
+  USERS ||--o{ INVOICES : billed
+  CUSTOMER_ORDERS o|--o| INVOICES : generates
+  REPAIR_REQUESTS o|--o| INVOICES : generates
+  INVOICES ||--|{ INVOICE_LINES : contains
+  INVOICES ||--o{ PAYMENTS : receives
+  COMPANIES o|--o{ EXPENSES : incurs
+  COMPANIES ||--o{ PLATFORM_FEES : owes
+  CUSTOMER_ORDERS o|--o{ PLATFORM_FEES : commission
+  REPAIR_REQUESTS o|--o{ PLATFORM_FEES : commission

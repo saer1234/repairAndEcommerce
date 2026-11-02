@@ -1,0 +1,1 @@
+API examples for stages 3–6. `stage6-finance.http` uses IntelliJ variables and Basic Auth for development; `stage6_postman_collection.json` is Postman v2.1. Replace demo credentials and IDs. Do not commit real passwords to source control.

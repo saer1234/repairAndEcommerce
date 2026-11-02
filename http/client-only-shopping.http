@@ -1,0 +1,37 @@
+### Client-only shopping authorization checks
+### Replace the sample company/item IDs and tokens before testing.
+@baseUrl = http://localhost:8081/api
+@companyId = 1
+@itemId = 1
+@clientToken = PLACE_CLIENT_JWT_HERE
+@staffToken = PLACE_OWNER_OR_MANAGER_OR_EMPLOYEE_JWT_HERE
+
+### Client: expected HTTP 200 (a standalone CLIENT without a company role)
+GET {{baseUrl}}/companies/{{companyId}}/cart
+Authorization: Bearer {{clientToken}}
+
+### Client: expected HTTP 200, assuming item and stock exist
+PUT {{baseUrl}}/companies/{{companyId}}/cart/items/{{itemId}}
+Authorization: Bearer {{clientToken}}
+Content-Type: application/json
+
+{"quantity":1}
+
+### Client: expected HTTP 201, with items in the cart
+POST {{baseUrl}}/companies/{{companyId}}/checkout
+Authorization: Bearer {{clientToken}}
+
+### Staff or Owner: expected HTTP 403
+GET {{baseUrl}}/companies/{{companyId}}/cart
+Authorization: Bearer {{staffToken}}
+
+### Staff or Owner: expected HTTP 403
+PUT {{baseUrl}}/companies/{{companyId}}/cart/items/{{itemId}}
+Authorization: Bearer {{staffToken}}
+Content-Type: application/json
+
+{"quantity":1}
+
+### Staff or Owner: expected HTTP 403 (no order or stock change)
+POST {{baseUrl}}/companies/{{companyId}}/checkout
+Authorization: Bearer {{staffToken}}

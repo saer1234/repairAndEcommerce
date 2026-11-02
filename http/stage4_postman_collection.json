@@ -1,0 +1,207 @@
+{
+  "info": {
+    "name": "Repair Management \u2014 Stage 4",
+    "description": "MySQL/Spring Boot 8081 stage 4 API. Only use Basic authentication for local testing. Register customer and owner and create company/items first. Do NOT complete and cancel the same order.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "Register customer (once)",
+      "request": {
+        "method": "POST",
+        "auth": {
+          "type": "noauth"
+        },
+        "url": "{{baseUrl}}/api/auth/register",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"fullName\": \"Test Customer\",\n  \"email\": \"customer@example.com\",\n  \"password\": \"DemoPassword123!\"\n}"
+        }
+      }
+    },
+    {
+      "name": "Customer",
+      "auth": {
+        "type": "basic",
+        "basic": [
+          {
+            "key": "username",
+            "value": "{{customerEmail}}",
+            "type": "string"
+          },
+          {
+            "key": "password",
+            "value": "{{customerPassword}}",
+            "type": "string"
+          }
+        ]
+      },
+      "item": [
+        {
+          "name": "View cart",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/api/companies/{{companyId}}/cart",
+            "description": "Stage 4 Repair System endpoint"
+          }
+        },
+        {
+          "name": "Set item quantity",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/api/companies/{{companyId}}/cart/items/{{itemId}}",
+            "description": "Stage 4 Repair System endpoint",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"quantity\": 2\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Checkout",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": "{{baseUrl}}/api/companies/{{companyId}}/checkout",
+            "description": "Stage 4 Repair System endpoint"
+          }
+        },
+        {
+          "name": "My orders",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/api/companies/{{companyId}}/orders/mine",
+            "description": "Stage 4 Repair System endpoint"
+          }
+        },
+        {
+          "name": "My order",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/api/companies/{{companyId}}/orders/{{orderId}}",
+            "description": "Stage 4 Repair System endpoint"
+          }
+        },
+        {
+          "name": "Cancel confirmed order",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": "{{baseUrl}}/api/companies/{{companyId}}/orders/{{orderId}}/cancel",
+            "description": "Stage 4 Repair System endpoint"
+          }
+        },
+        {
+          "name": "Remove cart item",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": "{{baseUrl}}/api/companies/{{companyId}}/cart/items/{{itemId}}",
+            "description": "Stage 4 Repair System endpoint"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Company Manager",
+      "auth": {
+        "type": "basic",
+        "basic": [
+          {
+            "key": "username",
+            "value": "{{managerEmail}}",
+            "type": "string"
+          },
+          {
+            "key": "password",
+            "value": "{{managerPassword}}",
+            "type": "string"
+          }
+        ]
+      },
+      "item": [
+        {
+          "name": "List company orders",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/api/companies/{{companyId}}/orders",
+            "description": "Stage 4 Repair System endpoint"
+          }
+        },
+        {
+          "name": "Complete confirmed order",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": "{{baseUrl}}/api/companies/{{companyId}}/orders/{{orderId}}/complete",
+            "description": "Stage 4 Repair System endpoint"
+          }
+        },
+        {
+          "name": "Completed-order profit",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/api/companies/{{companyId}}/finance/sales-summary",
+            "description": "Stage 4 Repair System endpoint"
+          }
+        }
+      ]
+    }
+  ],
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:8081"
+    },
+    {
+      "key": "companyId",
+      "value": "1"
+    },
+    {
+      "key": "itemId",
+      "value": "1"
+    },
+    {
+      "key": "orderId",
+      "value": "1"
+    },
+    {
+      "key": "customerEmail",
+      "value": "customer@example.com"
+    },
+    {
+      "key": "customerPassword",
+      "value": "DemoPassword123!"
+    },
+    {
+      "key": "managerEmail",
+      "value": "owner@example.com"
+    },
+    {
+      "key": "managerPassword",
+      "value": "DemoPassword123!"
+    }
+  ]
+}

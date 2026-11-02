@@ -1,0 +1,50 @@
+# Run login first; replace TOKEN, company ID and item ID with values from your system.
+@base = http://localhost:8081/api
+@companyId = 1
+@itemId = 1
+@jwt = REPLACE_WITH_JWT_ACCESS_TOKEN
+
+### Create product (OWNER or MANAGER only)
+POST {{base}}/companies/{{companyId}}/items
+Authorization: Bearer {{jwt}}
+Content-Type: application/json
+
+{
+  "sku": "SCREEN-001",
+  "name": "Samsung screen replacement",
+  "description": "Replacement display, black",
+  "costPrice": 50.00,
+  "sellingPrice": 80.00,
+  "openingStock": 10
+}
+
+### Browse public store products (no cost price)
+GET {{base}}/companies/{{companyId}}/items
+
+### Manager list (including cost price and margin)
+GET {{base}}/companies/{{companyId}}/inventory/items
+Authorization: Bearer {{jwt}}
+
+### Update the item, excluding stock
+PUT {{base}}/companies/{{companyId}}/items/{{itemId}}
+Authorization: Bearer {{jwt}}
+Content-Type: application/json
+
+{
+  "sku": "SCREEN-001",
+  "name": "Samsung screen replacement",
+  "description": "Updated details",
+  "costPrice": 55.00,
+  "sellingPrice": 85.00
+}
+
+### Restock an existing item
+POST {{base}}/companies/{{companyId}}/inventory/items/{{itemId}}/movements
+Authorization: Bearer {{jwt}}
+Content-Type: application/json
+
+{
+  "movementType": "RESTOCK",
+  "quantityChange": 5,
+  "note": "Received new shipment"
+}

@@ -1,0 +1,21 @@
+### Registered client search (employee, manager, or owner JWT)
+@base = http://localhost:8081/api
+@companyId = 1
+@staffToken = REPLACE_WITH_JWT_OF_COMPANY_MEMBER
+
+GET {{base}}/companies/{{companyId}}/repairs/eligible-clients?q=ali
+Authorization: Bearer {{staffToken}}
+
+### Use an id from the search response, not an arbitrary name.
+POST {{base}}/companies/{{companyId}}/repairs/for-client
+Authorization: Bearer {{staffToken}}
+Content-Type: application/json
+
+{
+  "clientId": 15,
+  "clientPhone": "+96170123456",
+  "deviceType": "Phone",
+  "brand": "Samsung",
+  "model": "S24",
+  "issueDescription": "Broken screen"
+}

@@ -1,0 +1,11 @@
+erDiagram
+    COMPANIES ||--o{ REPAIR_REQUESTS : handles
+    USERS ||--o{ REPAIR_REQUESTS : requests
+    USERS ||--o{ REPAIR_REQUESTS : assigned_to
+    REPAIR_REQUESTS ||--o{ REPAIR_PARTS : consumes
+    REPAIR_REQUESTS ||--o{ REPAIR_UPDATES : logs
+    ITEMS ||--o{ REPAIR_PARTS : used_as
+    ITEMS ||--o{ STOCK_MOVEMENTS : tracked_by
+    USERS ||--o{ REPAIR_UPDATES : records
+    COMPANIES ||--o{ COMPANY_MEMBERS : has
+    USERS ||--o{ COMPANY_MEMBERS : belongs_to

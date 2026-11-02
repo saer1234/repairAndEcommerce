@@ -1,0 +1,128 @@
+erDiagram
+    USERS ||--o{ COMPANY_MEMBERS : joins
+    COMPANIES ||--o{ COMPANY_MEMBERS : employs
+    COMPANIES ||--o{ ITEMS : lists
+    ITEMS ||--o{ STOCK_MOVEMENTS : records
+    USERS ||--o{ STOCK_MOVEMENTS : performs
+    COMPANIES ||--o{ SHOPPING_CARTS : hosts
+    USERS ||--o{ SHOPPING_CARTS : owns
+    SHOPPING_CARTS ||--o{ CART_ITEMS : contains
+    ITEMS ||--o{ CART_ITEMS : selected
+    COMPANIES ||--o{ CUSTOMER_ORDERS : receives
+    USERS ||--o{ CUSTOMER_ORDERS : places
+    CUSTOMER_ORDERS ||--|{ ORDER_ITEMS : includes
+    ITEMS ||--o{ ORDER_ITEMS : sold_as
+    COMPANIES ||--o{ REPAIR_REQUESTS : manages
+    USERS ||--o{ REPAIR_REQUESTS : requests
+    REPAIR_REQUESTS ||--o{ REPAIR_PARTS : uses
+    ITEMS ||--o{ REPAIR_PARTS : consumed_as
+    REPAIR_REQUESTS ||--o{ REPAIR_UPDATES : tracked_by
+    COMPANIES ||--o{ INVOICES : issues
+    USERS ||--o{ INVOICES : receives
+    INVOICES ||--|{ INVOICE_LINES : contains
+    INVOICES ||--o{ PAYMENTS : paid_by
+    COMPANIES |o--o{ EXPENSES : incurs
+    COMPANIES ||--o{ PLATFORM_FEES : pays
+    USERS {
+        bigint id PK
+        varchar email UK
+        varchar password_hash
+        varchar platform_role
+    }
+    COMPANIES {
+        bigint id PK
+        varchar name
+        char currency_code
+    }
+    COMPANY_MEMBERS {
+        bigint id PK
+        bigint user_id FK
+        bigint company_id FK
+        varchar member_role
+    }
+    ITEMS {
+        bigint id PK
+        bigint company_id FK
+        decimal cost_price
+        decimal selling_price
+        int stock_quantity
+    }
+    STOCK_MOVEMENTS {
+        bigint id PK
+        bigint item_id FK
+        int quantity_change
+    }
+    SHOPPING_CARTS {
+        bigint id PK
+        bigint company_id FK
+        bigint customer_id FK
+    }
+    CART_ITEMS {
+        bigint id PK
+        bigint cart_id FK
+        bigint item_id FK
+        int quantity
+    }
+    CUSTOMER_ORDERS {
+        bigint id PK
+        bigint company_id FK
+        bigint customer_id FK
+        decimal total_amount
+    }
+    ORDER_ITEMS {
+        bigint id PK
+        bigint order_id FK
+        bigint item_id FK
+        decimal unit_cost_price
+        decimal unit_selling_price
+    }
+    REPAIR_REQUESTS {
+        bigint id PK
+        bigint company_id FK
+        bigint customer_id FK
+        varchar status
+        decimal labor_cost
+        decimal labor_charge
+    }
+    REPAIR_PARTS {
+        bigint id PK
+        bigint repair_id FK
+        bigint item_id FK
+        decimal unit_cost_price
+        decimal unit_selling_price
+    }
+    REPAIR_UPDATES {
+        bigint id PK
+        bigint repair_id FK
+        varchar new_status
+    }
+    INVOICES {
+        bigint id PK
+        bigint company_id FK
+        bigint order_id FK
+        bigint repair_id FK
+        decimal total_amount
+    }
+    INVOICE_LINES {
+        bigint id PK
+        bigint invoice_id FK
+        decimal quantity
+        decimal unit_price
+    }
+    PAYMENTS {
+        bigint id PK
+        bigint invoice_id FK
+        decimal amount
+    }
+    EXPENSES {
+        bigint id PK
+        bigint company_id FK
+        decimal amount
+        char currency_code
+    }
+    PLATFORM_FEES {
+        bigint id PK
+        bigint company_id FK
+        decimal fee_amount
+        char currency_code
+    }

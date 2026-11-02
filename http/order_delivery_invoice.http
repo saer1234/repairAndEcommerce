@@ -1,0 +1,59 @@
+### Set your own Bearer token / company / order / invoice IDs.
+@base = http://localhost:8081/api
+@companyId = 1
+@orderId = 1
+@invoiceId = 1
+@token = INSERT_CLIENT_OR_MANAGER_JWT
+
+### Client: update quantity in cart (only Client accounts are allowed)
+PUT {{base}}/companies/{{companyId}}/cart/items/1
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{"quantity": 3}
+
+### Client: checkout requires address AND pin coordinates
+POST {{base}}/companies/{{companyId}}/checkout
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "deliveryPhone":"+420123456789",
+  "streetAddress":"Main Street 10, Building B",
+  "city":"Kladno",
+  "postalCode":"27201",
+  "country":"Czechia",
+  "deliveryNotes":"Ring doorbell 4",
+  "latitude":50.1470000,
+  "longitude":14.1050000
+}
+
+### Manager/Owner: list company orders, includes delivery pin
+GET {{base}}/companies/{{companyId}}/orders
+Authorization: Bearer {{token}}
+
+### Manager/Owner: internal profit only (403 for Client)
+GET {{base}}/companies/{{companyId}}/orders/{{orderId}}/profit
+Authorization: Bearer {{token}}
+
+### Manager/Owner: mark fulfilled
+POST {{base}}/companies/{{companyId}}/orders/{{orderId}}/complete
+Authorization: Bearer {{token}}
+
+### Manager/Owner: create invoice from completed order; tax depends on jurisdiction
+POST {{base}}/companies/{{companyId}}/invoices
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{"orderId":1,"repairId":null,"taxAmount":0.00}
+
+### Manager/Owner: issue invoice (UTC future date)
+POST {{base}}/companies/{{companyId}}/invoices/{{invoiceId}}/issue
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{"dueAt":"2027-01-01T23:59:00"}
+
+### Client: list their issued/paid invoices
+GET {{base}}/companies/{{companyId}}/invoices/mine
+Authorization: Bearer {{token}}

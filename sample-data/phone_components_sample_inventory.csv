@@ -1,0 +1,28 @@
+﻿SKU,Product name,Device type,Brand,Component category,Compatible models,Cost (€),Selling (€),Opening stock,Profit / unit (€),Gross margin,Stock cost (€),Potential sales (€),Potential profit (€),Notes
+APP-IP13-SCR,iPhone 13 display assembly,Phone,Apple,Screen,Apple iPhone 13,39.0,89.0,7,50.0,0.5618,273.0,623.0,350.0,Model-specific screen; verify exact part revision
+APP-IP13-BAT,iPhone 13 replacement battery,Phone,Apple,Battery,Apple iPhone 13,16.0,39.0,12,23.0,0.5897,192.0,468.0,276.0,"Verify connector, capacity and battery safety"
+APP-IP13-PORT,iPhone 13 charging flex,Phone,Apple,Charging Port,Apple iPhone 13,12.0,34.0,8,22.0,0.6471,96.0,272.0,176.0,Model-specific charging assembly
+APP-IP13-BACK,iPhone 13 back glass,Phone,Apple,Housing,Apple iPhone 13,11.0,36.0,9,25.0,0.6944,99.0,324.0,225.0,Check color and variant before purchase
+APP-IP14-SCR,iPhone 14 display assembly,Phone,Apple,Screen,Apple iPhone 14,48.0,99.0,6,51.0,0.5152,288.0,594.0,306.0,Model-specific screen
+APP-IP14-BAT,iPhone 14 replacement battery,Phone,Apple,Battery,Apple iPhone 14,19.0,44.0,10,25.0,0.5682,190.0,440.0,250.0,Verify connector and safety
+APP-IP14-CAM,iPhone 14 rear camera module,Phone,Apple,Camera,Apple iPhone 14,37.0,78.0,4,41.0,0.5256,148.0,312.0,164.0,Verify camera version
+APP-IP15-SCR,iPhone 15 display assembly,Phone,Apple,Screen,Apple iPhone 15,75.0,145.0,5,70.0,0.4828,375.0,725.0,350.0,Model-specific screen
+APP-IP15-BAT,iPhone 15 replacement battery,Phone,Apple,Battery,Apple iPhone 15,27.0,58.0,9,31.0,0.5345,243.0,522.0,279.0,Verify connector and safety
+APP-IP15-PORT,iPhone 15 USB-C port assembly,Phone,Apple,Charging Port,Apple iPhone 15,19.0,49.0,6,30.0,0.6122,114.0,294.0,180.0,Verify exact assembly variant
+SAM-S23-SCR,Galaxy S23 display assembly,Phone,Samsung,Screen,Samsung Galaxy S23,82.0,155.0,4,73.0,0.471,328.0,620.0,292.0,Model-specific display
+SAM-S23-BAT,Galaxy S23 replacement battery,Phone,Samsung,Battery,Samsung Galaxy S23,20.0,49.0,9,29.0,0.5918,180.0,441.0,261.0,Verify part code and safety
+SAM-S23-PORT,Galaxy S23 charging board,Phone,Samsung,Charging Port,Samsung Galaxy S23,13.0,37.0,9,24.0,0.6486,117.0,333.0,216.0,Verify sub-board variant
+SAM-S24-SCR,Galaxy S24 display assembly,Phone,Samsung,Screen,Samsung Galaxy S24,93.0,175.0,4,82.0,0.4686,372.0,700.0,328.0,Model-specific display
+SAM-S24-BAT,Galaxy S24 replacement battery,Phone,Samsung,Battery,Samsung Galaxy S24,24.0,55.0,8,31.0,0.5636,192.0,440.0,248.0,Verify part code and safety
+SAM-S24-PORT,Galaxy S24 charging board,Phone,Samsung,Charging Port,Samsung Galaxy S24,16.0,39.0,8,23.0,0.5897,128.0,312.0,184.0,Verify model-specific port
+SAM-A54-SCR,Galaxy A54 5G display assembly,Phone,Samsung,Screen,Samsung Galaxy A54 5G,38.0,85.0,9,47.0,0.5529,342.0,765.0,423.0,Model-specific display
+SAM-A54-BAT,Galaxy A54 5G replacement battery,Phone,Samsung,Battery,Samsung Galaxy A54 5G,15.0,39.0,13,24.0,0.6154,195.0,507.0,312.0,Verify battery part number
+XIA-RN12-4G-SCR,Redmi Note 12 4G screen,Phone,Xiaomi,Screen,Xiaomi Redmi Note 12 4G,29.0,69.0,8,40.0,0.5797,232.0,552.0,320.0,Do not confuse 4G and 5G models
+XIA-RN12-4G-BAT,Redmi Note 12 4G battery,Phone,Xiaomi,Battery,Xiaomi Redmi Note 12 4G,14.0,36.0,10,22.0,0.6111,140.0,360.0,220.0,Check manufacturer part code
+XIA-RN13-4G-SCR,Redmi Note 13 4G screen,Phone,Xiaomi,Screen,Xiaomi Redmi Note 13 4G,35.0,79.0,7,44.0,0.557,245.0,553.0,308.0,Do not confuse 4G and 5G models
+XIA-RN13-4G-BAT,Redmi Note 13 4G battery,Phone,Xiaomi,Battery,Xiaomi Redmi Note 13 4G,16.0,38.0,11,22.0,0.5789,176.0,418.0,242.0,Check manufacturer part code
+XIA-POCOX5P-SCR,Poco X5 Pro 5G screen,Phone,Xiaomi,Screen,Xiaomi Poco X5 Pro 5G,42.0,89.0,6,47.0,0.5281,252.0,534.0,282.0,Model-specific display
+XIA-POCOX5P-BAT,Poco X5 Pro 5G battery,Phone,Xiaomi,Battery,Xiaomi Poco X5 Pro 5G,18.0,43.0,10,25.0,0.5814,180.0,430.0,250.0,Check battery part code
+UNI-USBC-CBL-1M,USB-C charging/data cable 1m,Phone,Universal,Accessory,Apple iPhone 15; Samsung Galaxy S23; Samsung Galaxy S24; Xiaomi Redmi Note 13 4G,3.5,12.0,35,8.5,0.7083,122.5,420.0,297.5,Generic USB-C connector only; check charging/data specifications
+UNI-SIM-EJECT,SIM eject tool,Phone,Universal,Tool,,0.2,3.0,50,2.8,0.9333,10.0,150.0,140.0,Generic tool; test fit before use
+SAM-S23-CAM,Galaxy S23 rear camera module,Phone,Samsung,Camera,Samsung Galaxy S23,45.0,95.0,3,50.0,0.5263,135.0,285.0,150.0,Verify exact camera module variant

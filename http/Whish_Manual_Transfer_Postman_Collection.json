@@ -1,0 +1,316 @@
+{
+  "info": {
+    "name": "Repair Management \u2014 Manual Whish Wallet Transfers (V11)",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "description": "Manual verification only. These requests DO NOT transfer funds."
+  },
+  "item": [
+    {
+      "name": "01 Manager - configure Whish receiving phone",
+      "request": {
+        "method": "PUT",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{managerToken}}"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/companies/{{companyId}}/whish/settings",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "companies",
+            "{{companyId}}",
+            "whish",
+            "settings"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"phone\": \"+96170123456\"\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      }
+    },
+    {
+      "name": "02 Client - order transfer instructions",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{clientToken}}"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/companies/{{companyId}}/orders/{{orderId}}/whish/instructions",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "companies",
+            "{{companyId}}",
+            "orders",
+            "{{orderId}}",
+            "whish",
+            "instructions"
+          ]
+        }
+      }
+    },
+    {
+      "name": "03 Client - submit transfer reference",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{clientToken}}"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/companies/{{companyId}}/orders/{{orderId}}/whish/transfers",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "companies",
+            "{{companyId}}",
+            "orders",
+            "{{orderId}}",
+            "whish",
+            "transfers"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"reference\": \"REAL-WHISH-REF-123\",\n  \"senderName\": \"Example Sender\",\n  \"senderPhone\": \"+96170123456\"\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      }
+    },
+    {
+      "name": "04 Manager - review all transfers",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{managerToken}}"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/companies/{{companyId}}/whish/transfers",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "companies",
+            "{{companyId}}",
+            "whish",
+            "transfers"
+          ]
+        }
+      }
+    },
+    {
+      "name": "05 Manager - verify transfer after checking wallet",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{managerToken}}"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/companies/{{companyId}}/whish/transfers/{{transferId}}/verify",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "companies",
+            "{{companyId}}",
+            "whish",
+            "transfers",
+            "{{transferId}}",
+            "verify"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      }
+    },
+    {
+      "name": "06 Manager - reject transfer",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{managerToken}}"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/companies/{{companyId}}/whish/transfers/{{transferId}}/reject",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "companies",
+            "{{companyId}}",
+            "whish",
+            "transfers",
+            "{{transferId}}",
+            "reject"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"note\": \"No matching transfer received\"\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      }
+    },
+    {
+      "name": "07 Client - repair invoice instructions",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{clientToken}}"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/companies/{{companyId}}/invoices/{{invoiceId}}/whish/instructions",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "companies",
+            "{{companyId}}",
+            "invoices",
+            "{{invoiceId}}",
+            "whish",
+            "instructions"
+          ]
+        }
+      }
+    },
+    {
+      "name": "08 Client - submit repair invoice reference",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{clientToken}}"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/companies/{{companyId}}/invoices/{{invoiceId}}/whish/transfers",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "companies",
+            "{{companyId}}",
+            "invoices",
+            "{{invoiceId}}",
+            "whish",
+            "transfers"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"reference\": \"ANOTHER-REAL-WHISH-REF\",\n  \"senderName\": \"Example Sender\",\n  \"senderPhone\": \"+96170123456\"\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      }
+    }
+  ],
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:8081"
+    },
+    {
+      "key": "companyId",
+      "value": "1"
+    },
+    {
+      "key": "orderId",
+      "value": "1"
+    },
+    {
+      "key": "invoiceId",
+      "value": "1"
+    },
+    {
+      "key": "transferId",
+      "value": "1"
+    },
+    {
+      "key": "clientToken",
+      "value": ""
+    },
+    {
+      "key": "managerToken",
+      "value": ""
+    }
+  ]
+}

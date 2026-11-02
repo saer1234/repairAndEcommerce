@@ -1,0 +1,16 @@
+# syntax=docker/dockerfile:1.7
+# Angular 22 requires Node >=24.15.0; no Node installation on the host needed.
+FROM node:24.15.0-bookworm-slim AS build
+WORKDIR /app
+COPY frontend/package*.json ./
+RUN --mount=type=cache,target=/root/.npm \
+    if [ -f package-lock.json ]; then npm ci --no-audit --no-fund; \
+    else npm install --no-audit --no-fund; fi
+COPY frontend/ ./
+RUN npm run build
+
+# Caddy serves the Angular SPA and reverse-proxies /api to Spring Boot.
+FROM caddy:2-alpine
+COPY --from=build /app/dist/repair-management-web/browser/ /srv/
+COPY deploy/Caddyfile /etc/caddy/Caddyfile
+EXPOSE 80 443

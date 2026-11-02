@@ -1,0 +1,42 @@
+@base = http://localhost:8081/api
+@companyId = 1
+@repairId = 11
+@itemId = 12
+@partLineId = 33
+@token = REPLACE_WITH_OWNER_MANAGER_OR_ASSIGNED_TECHNICIAN_JWT
+
+### Create item (owner or manager, sample fitment unverified)
+POST {{base}}/companies/{{companyId}}/items
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "sku":"LCD-DEMO-001",
+  "name":"Demonstration screen",
+  "description":"Verify exact models and part numbers before listing",
+  "deviceType":"Phone",
+  "deviceBrand":"Samsung",
+  "category":"Phone",
+  "compatibleDevices":[
+    {"deviceType":"Phone","deviceBrand":"Samsung","deviceModel":"Galaxy S23"},
+    {"deviceType":"Phone","deviceBrand":"Samsung","deviceModel":"Galaxy S24"}
+  ],
+  "costPrice":40.00,
+  "sellingPrice":70.00,
+  "openingStock":5
+}
+
+### Read staff inventory, no cost prices
+GET {{base}}/companies/{{companyId}}/inventory/stock
+Authorization: Bearer {{token}}
+
+### Use selected part in active repair, only assigned tech/manager
+POST {{base}}/companies/{{companyId}}/repairs/{{repairId}}/parts
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{"itemId":{{itemId}},"quantity":1,"confirmUnverifiedCompatibility":false}
+
+### Return a part LINE to stock before repair completion
+DELETE {{base}}/companies/{{companyId}}/repairs/{{repairId}}/parts/{{partLineId}}
+Authorization: Bearer {{token}}

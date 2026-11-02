@@ -1,0 +1,25 @@
+# SITE_ADDRESS=:80 for initial HTTP-only testing by VPS IP (no personal/payment data).
+# SITE_ADDRESS=repair.yourdomain.com for automatic HTTPS.
+{$SITE_ADDRESS} {
+    encode zstd gzip
+
+    # Do not strip /api from backend requests.
+    @api path /api /api/*
+    handle @api {
+        reverse_proxy backend:8081
+    }
+
+    # Angular single-page application routes.
+    handle {
+        root * /srv
+        try_files {path} /index.html
+        file_server
+    }
+
+    header {
+        X-Content-Type-Options nosniff
+        Referrer-Policy strict-origin-when-cross-origin
+        X-Frame-Options DENY
+        -Server
+    }
+}

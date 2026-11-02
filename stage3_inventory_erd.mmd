@@ -1,0 +1,42 @@
+erDiagram
+    COMPANIES ||--o{ ITEMS : owns
+    USERS ||--o{ COMPANY_MEMBERS : joins
+    COMPANIES ||--o{ COMPANY_MEMBERS : employs
+    ITEMS ||--o{ STOCK_MOVEMENTS : records
+    USERS ||--o{ STOCK_MOVEMENTS : performs
+
+    COMPANIES {
+        BIGINT id PK
+        VARCHAR name
+        CHAR currency_code
+        VARCHAR status
+    }
+    USERS {
+        BIGINT id PK
+        VARCHAR email
+        VARCHAR platform_role
+    }
+    COMPANY_MEMBERS {
+        BIGINT id PK
+        BIGINT company_id FK
+        BIGINT user_id FK
+        VARCHAR member_role
+    }
+    ITEMS {
+        BIGINT id PK
+        BIGINT company_id FK
+        VARCHAR sku
+        VARCHAR name
+        DECIMAL cost_price
+        DECIMAL selling_price
+        INT stock_quantity
+        BOOLEAN active
+    }
+    STOCK_MOVEMENTS {
+        BIGINT id PK
+        BIGINT item_id FK
+        BIGINT performed_by_user_id FK
+        VARCHAR movement_type
+        INT quantity_change
+        DATETIME created_at
+    }

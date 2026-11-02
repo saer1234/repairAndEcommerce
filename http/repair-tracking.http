@@ -1,0 +1,33 @@
+# Log in first via POST http://localhost:8081/api/auth/login
+# Paste the resulting JWT tokens here (never commit real tokens).
+@base = http://localhost:8081/api
+@customerToken = REPLACE_WITH_CUSTOMER_JWT
+@staffToken = REPLACE_WITH_STAFF_JWT
+
+### Customer: track all repairs across companies
+GET {{base}}/repairs/tracking
+Authorization: Bearer {{customerToken}}
+
+### Customer: track repair owned by logged in account
+GET {{base}}/repairs/tracking/5
+Authorization: Bearer {{customerToken}}
+
+### Staff: change status, publish public note (private note remains hidden)
+POST {{base}}/companies/1/repairs/5/status
+Authorization: Bearer {{staffToken}}
+Content-Type: application/json
+
+{
+  "status": "IN_PROGRESS",
+  "note": "Private technical diagnostic details",
+  "customerNote": "We have started repairing your device."
+}
+
+### Staff: publish a progress note without changing status
+POST {{base}}/companies/1/repairs/5/progress
+Authorization: Bearer {{staffToken}}
+Content-Type: application/json
+
+{
+  "customerNote": "We are now testing the replacement component."
+}

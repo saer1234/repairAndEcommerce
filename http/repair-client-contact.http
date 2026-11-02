@@ -1,0 +1,28 @@
+# Repair client contact — Stage 8 change
+# Configure the variables below in your HTTP client; use your real company ID and Bearer JWT.
+@base = http://localhost:8081/api
+@companyId = 1
+@token = PASTE_ACCESS_TOKEN_HERE
+
+### Create repair request with a contact snapshot
+POST {{base}}/companies/{{companyId}}/repairs
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "clientName": "Customer Contact",
+  "clientPhone": "+961 70 123 456",
+  "deviceType": "Mobile phone",
+  "brand": "Samsung",
+  "model": "Galaxy S24",
+  "issueDescription": "Cracked screen; touch is not responding"
+}
+
+### See the saved contact details in the customer's requests
+GET {{base}}/companies/{{companyId}}/repairs/mine
+Authorization: Bearer {{token}}
+
+### Managers / employees: see company queue with customer contact info
+# Authenticate with a JWT for an active member of the company.
+GET {{base}}/companies/{{companyId}}/repairs
+Authorization: Bearer {{token}}

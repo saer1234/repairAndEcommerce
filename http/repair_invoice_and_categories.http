@@ -1,0 +1,56 @@
+@base = http://localhost:8081/api
+@companyId = 1
+@repairId = 27
+@ownerJWT = REPLACE_WITH_OWNER_TOKEN
+@clientJWT = REPLACE_WITH_CLIENT_TOKEN
+
+### Owner/Manager: create category-tagged product
+POST {{base}}/companies/{{companyId}}/items
+Authorization: Bearer {{ownerJWT}}
+Content-Type: application/json
+
+{
+  "sku": "CHARGER-TEST-010",
+  "name": "USB-C charger",
+  "category": "Chargers",
+  "description": "30 W USB-C wall charger",
+  "costPrice": 12.50,
+  "sellingPrice": 22.00,
+  "openingStock": 10
+}
+
+### Public catalog — includes category but never costPrice
+GET {{base}}/companies/{{companyId}}/items
+Authorization: Bearer {{clientJWT}}
+
+### Assigned technician / owner: save diagnosis and work summary
+PUT {{base}}/companies/{{companyId}}/repairs/{{repairId}}/report
+Authorization: Bearer {{ownerJWT}}
+Content-Type: application/json
+
+{
+  "diagnosis": "The LCD assembly was damaged and requires replacement.",
+  "workPerformed": "Installed compatible replacement display, tested touch and brightness, cleaned device."
+}
+
+### Owner/Manager: Create invoice AFTER status COMPLETED
+POST {{base}}/companies/{{companyId}}/invoices
+Authorization: Bearer {{ownerJWT}}
+Content-Type: application/json
+
+{"orderId":null,"repairId":{{repairId}},"taxAmount":0}
+
+### Owner/Manager: issue invoice with actual id from previous response
+POST {{base}}/companies/{{companyId}}/invoices/REPLACE_WITH_INVOICE_ID/issue
+Authorization: Bearer {{ownerJWT}}
+Content-Type: application/json
+
+{"dueAt":"2026-12-15T18:00:00"}
+
+### Client: Read own issued repair report and printable invoice
+GET {{base}}/companies/{{companyId}}/repairs/{{repairId}}/invoice-report
+Authorization: Bearer {{clientJWT}}
+
+### Owner/Manager: Read internal cost and gross profit (client should receive 403)
+GET {{base}}/companies/{{companyId}}/repairs/{{repairId}}/invoice-report/internal
+Authorization: Bearer {{ownerJWT}}
