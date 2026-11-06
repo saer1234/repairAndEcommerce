@@ -19,7 +19,7 @@ import org.springframework.web.server.ResponseStatusException;
 @Service
 public class ItemImageService {
     private static final Logger log = LoggerFactory.getLogger(ItemImageService.class);
-    private static final int MAX_BYTES = 5 * 1024 * 1024;
+    private static final int MAX_BYTES = 20 * 1024 * 1024;
     private final Path storageDir;
     private final ItemRepository items;
     private final InventoryAccess access;

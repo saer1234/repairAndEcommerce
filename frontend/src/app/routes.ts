@@ -1,17 +1,17 @@
 import { Routes } from '@angular/router';
-import { authGuard } from './auth.guard';
-import { clientShopGuard } from './client-shop.guard';
-import { LoginPage } from './login.page';
-import { RegisterPage } from './register.page';
-import { ShellPage } from './shell.page';
-import { DashboardPage } from './dashboard.page';
-import { ShopPage } from './shop.page';
-import { OrdersPage } from './orders.page';
-import { InventoryPage } from './inventory.page';
-import { RepairsPage } from './repairs.page';
-import { RepairTrackingPage } from './repair-tracking.page';
-import { RepairWorkspacePage } from './repair-workspace.page';
-import { CompaniesPage } from './companies.page';
+import { authGuard } from './core/guards/auth-guard';
+import { clientShopGuard } from './core/guards/client-shop-guard';
+import { LoginPage } from './pages/auth/login.page/login.page';
+import { RegisterPage } from './pages/auth/register.page/register.page';
+import { ShellPage } from './pages/shell.page/shell.page';
+import { DashboardPage } from './pages/dashboard.page/dashboard.page';
+import { ShopPage } from './pages/shop.page/shop.page';
+import { OrdersPage } from './pages/orders.page/orders.page';
+import { InventoryPage } from './pages/inventory.page/inventory.page';
+import { RepairPage } from './pages/repair.page/repair.page';
+import { RepairTrackingPage } from './pages/repair-tracking.page/repair-tracking.page';
+import { RepairWorkspacePage } from './pages/repair-workspace.page/repair-workspace.page';
+import { CompaniesPage } from './pages/companies.page/companies.page';
 export const routes:Routes=[
  {path:'login',component:LoginPage},
  {path:'register',component:RegisterPage},
@@ -21,7 +21,7 @@ export const routes:Routes=[
    {path:'shop',component:ShopPage,canActivate:[clientShopGuard]},
    {path:'orders',component:OrdersPage},
    {path:'inventory',component:InventoryPage},
-   {path:'repairs',component:RepairsPage},
+   {path:'repairs',component:RepairPage},
    {path:'track-repairs',component:RepairTrackingPage},
    {path:'repair-workspace',component:RepairWorkspacePage},
    {path:'companies',component:CompaniesPage}

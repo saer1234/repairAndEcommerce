@@ -1,0 +1,136 @@
+<section class="page-heading"><div><h1>Customer store</h1><p class="muted">Set quantities, confirm the delivery address and drop a location pin before ordering.</p></div>
+<div class="table-actions"><a routerLink="/orders" class="button-link secondary">My orders & invoices</a><button type="button" (click)="refresh()" class="secondary">Refresh</button></div></section>
+@if(message()){<p class="success" role="status">{{message()}}</p>}
+@if(lastOrder();as completedOrder){<app-whish-payment [companyId]="completedOrder.companyId" [orderId]="completedOrder.id" />}
+@if(error()){<p class="error" role="alert">{{error()}}</p>}
+<section class="panel verified-fit-finder" aria-label="Find an exact verified device fit">
+  <div class="panel-heading"><div><h2>Find verified fit</h2>
+    <p class="muted tiny">Choose your device type, brand and exact model. Only parts explicitly listed for that model will match.</p></div>
+    <button type="button" class="secondary" (click)="clearVerifiedFit()">Clear fit</button></div>
+  <div class="fit-fields">
+    <label>Device type
+      <select [ngModel]="fitDeviceType" (ngModelChange)="chooseFitType($event)" aria-label="Fit device type">
+        <option value="ALL">Choose type</option>
+        @for(type of fitTypes();track type){<option [value]="type">{{type}}</option>}
+      </select>
+    </label>
+    <label>Device brand
+      <select [ngModel]="fitDeviceBrand" (ngModelChange)="chooseFitBrand($event)" [disabled]="fitDeviceType==='ALL'" aria-label="Fit device brand">
+        <option value="ALL">Choose brand</option>
+        @for(brand of fitBrands();track brand){<option [value]="brand">{{brand}}</option>}
+      </select>
+    </label>
+    <label>Exact device model
+      <input type="search" list="customer-fit-models" [ngModel]="fitDeviceModel" (ngModelChange)="fitDeviceModel=$event;resetPage()" [disabled]="fitDeviceBrand==='ALL'"
+        placeholder="e.g. Galaxy S24" aria-label="Exact model for verified fit" />
+      <datalist id="customer-fit-models">@for(model of fitModels();track model){<option [value]="model"></option>}</datalist>
+    </label>
+  </div>
+  @if(fitActive()) {<p class="verified-fit-result" role="status">{{filteredProducts().length}} matching product(s) recorded for {{fitDeviceBrand}} {{fitDeviceModel}}.</p>}
+  @else {<p class="muted tiny">Exact fit requires all three fields. General product category or a wildcard does not count as verified.</p>}
+</section>
+<section class="store-filters panel" aria-label="Search and filter products">
+  <label>Search products
+    <input type="search" [ngModel]="searchText" (ngModelChange)="searchText=$event;resetPage()" placeholder="Search by name, SKU, brand or compatible model" aria-label="Search customer store" />
+  </label>
+  <label>Device type
+    <select [ngModel]="selectedDeviceType" (ngModelChange)="selectedDeviceType=$event;selectedBrand='ALL';resetPage()" aria-label="Filter by device type">
+      <option value="ALL">All device types</option>
+      @for(type of deviceTypes();track type){<option [value]="type">{{type}}</option>}
+    </select>
+  </label>
+  <label>Brand
+    <select [ngModel]="selectedBrand" (ngModelChange)="selectedBrand=$event;resetPage()" aria-label="Filter by brand">
+      <option value="ALL">All brands</option>
+      @for(brand of brands();track brand){<option [value]="brand">{{brand}}</option>}
+    </select>
+  </label>
+  <label>Component category
+    <select [ngModel]="selectedCategory" (ngModelChange)="selectedCategory=$event;resetPage()" aria-label="Filter store by component category">
+      <option value="ALL">All components</option>
+      @for(category of categories();track category){<option [value]="category">{{category}}</option>}
+    </select>
+  </label>
+  <div class="muted tiny filter-count">{{filteredProducts().length}} of {{products().length}} items</div>
+</section>
+@if(filteredProducts().length){
+ <div class="pagination-toolbar" role="group" aria-label="Customer store pagination">
+ <span>Showing {{pageStart()}}–{{pageEnd()}} of {{filteredProducts().length}} products</span>
+ <label>Per page <select [ngModel]="pageSize()" (ngModelChange)="setPageSize($event)"><option [ngValue]="8">8</option><option [ngValue]="12">12</option><option [ngValue]="24">24</option></select></label>
+ <div class="pagination-actions"><button type="button" class="secondary" (click)="setPage(page()-1)" [disabled]="page()===1">Previous</button>
+ <span>Page {{page()}} of {{pageCount()}}</span>
+ <button type="button" class="secondary" (click)="setPage(page()+1)" [disabled]="page()>=pageCount()">Next</button></div>
+ <div class="view-toggle" role="group" aria-label="Product display mode"><button type="button" class="secondary" [attr.aria-pressed]="viewMode()==='cards'" (click)="viewMode.set('cards')">Cards</button><button type="button" class="secondary" [attr.aria-pressed]="viewMode()==='table'" (click)="viewMode.set('table')">Table</button></div>
+ </div>
+}
+@if(viewMode()==='cards') {
+<div class="product-grid">
+ @for(item of pagedProducts();track item.id){<article class="product-card">
+ @if(item.imageUrl){<img class="store-product-image" [src]="imageSrc(item.imageUrl)" [alt]="item.name" loading="lazy" />}
+ @else{<div class="store-product-placeholder">No product photo</div>}
+ <span class="chip product-category">{{item.deviceType}} → {{item.deviceBrand}} · {{itemCategory(item)}}</span>
+ @if(fitActive() && itemVerified(item)){<span class="verified-fit-label">✓ Exact fit recorded: {{fitDeviceBrand}} {{fitDeviceModel}}</span>}
+ @if(item.compatibleDevices.length){<div class="muted tiny">Recorded compatibility:
+   @for(fit of item.compatibleDevices;track $index){<span class="fit-chip">{{fit.deviceBrand}} {{fit.deviceModel}}</span>}
+ </div>} @else {<p class="muted tiny">Compatibility not yet verified</p>}<h3>{{item.name}}</h3><p class="muted tiny">{{item.sku}}</p><p class="muted item-description-teaser">{{item.description || 'No description added yet.'}}</p>
+ <button type="button" class="secondary item-detail-button" (click)="openDetails(item)" [attr.aria-label]="'View details of '+item.name">View full description</button>
+ <div class="product-bottom"><strong>{{item.sellingPrice | number:'1.2-2'}} {{item.currencyCode}}</strong><button type="button" class="secondary" [disabled]="!item.inStock" (click)="add(item)">{{item.inStock?'Add to cart':'Out of stock'}}</button></div>
+ </article>}
+</div>
+} @else {
+ <div class="panel table-scroll"><table class="customer-products-table"><thead><tr><th>Product</th><th>Device / Brand</th><th>Price</th><th>Stock</th><th></th></tr></thead><tbody>
+ @for(item of pagedProducts();track item.id){<tr>
+ <td><div class="inventory-item-name">@if(item.imageUrl){<img class="item-thumbnail" [src]="imageSrc(item.imageUrl)" [alt]="item.name" loading="lazy" />}<div><strong>{{item.name}}</strong><p class="muted tiny">{{item.sku}}</p></div></div></td>
+ <td>{{item.deviceType}} / {{item.deviceBrand}} · {{itemCategory(item)}}
+ @if(fitActive() && itemVerified(item)){<span class="verified-fit-label">✓ Exact fit recorded</span>}</td>
+ <td>{{item.sellingPrice | number:'1.2-2'}} {{item.currencyCode}}</td>
+ <td>{{item.inStock?'Available':'Out of stock'}}</td>
+ <td><div class="table-actions"><button type="button" class="secondary" (click)="openDetails(item)">Details</button><button type="button" class="secondary" [disabled]="!item.inStock" (click)="add(item)">Add to cart</button></div></td>
+ </tr>}</tbody></table></div>
+}
+@if(!products().length){<p class="muted">No items listed for this company.</p>}
+@if(products().length && !filteredProducts().length){<p class="panel muted" role="status">{{fitActive()?'No explicitly recorded fit for that exact model. Do not assume a different model will fit.':'No matching products. Try a different search or category.'}}</p>}
+@if(selectedItem(); as item){
+ <app-item-detail [item]="item" (close)="closeDetails()" />
+}
+<section class="panel"><h3>Review your cart</h3>
+@if(cart();as c){
+ @for(line of c.items;track line.itemId){<div class="cart-line checkout-cart-line">
+ <div><strong>{{line.name}}</strong><div class="muted tiny">{{line.unitSellingPrice | number:'1.2-2'}} {{c.currencyCode}} each</div></div>
+ <label class="qty-control">Quantity
+ <input type="number" min="1" max="100000" step="1" [ngModel]="quantityDraft[line.itemId] ?? line.quantity" (ngModelChange)="quantityDraft[line.itemId]=$event" [attr.aria-label]="'Quantity for '+line.name" />
+ </label><button type="button" class="secondary" [disabled]="busy()" (click)="updateQuantity(line.itemId)">Update</button>
+ <span>{{line.lineTotal | number:'1.2-2'}} {{c.currencyCode}}</span><button type="button" class="secondary" [disabled]="busy()" (click)="remove(line.itemId)">Remove</button></div>}
+ <p class="checkout-total"><strong>Total: {{c.estimatedTotal | number:'1.2-2'}} {{c.currencyCode}}</strong></p>
+ @if(c.items.length){
+ <form #deliveryForm="ngForm" (ngSubmit)="checkout()" class="delivery-form">
+  <h3>Delivery details</h3><p class="muted tiny">Required before the order is placed. Your account identity is used as the customer name.</p>
+  <div class="field-pair"><label>Delivery phone
+   <input name="phone" [(ngModel)]="delivery.deliveryPhone" required maxlength="40" autocomplete="tel" />
+  </label><label>Country
+   <input name="country" [(ngModel)]="delivery.country" required maxlength="100" autocomplete="country-name" />
+  </label></div>
+  <label>Street address and building
+    <input name="street" [(ngModel)]="delivery.streetAddress" required maxlength="255" autocomplete="street-address" />
+  </label>
+  <div class="field-pair"><label>City
+   <input name="city" [(ngModel)]="delivery.city" required maxlength="120" autocomplete="address-level2" />
+  </label><label>Postal code (optional)
+   <input name="postalCode" [(ngModel)]="delivery.postalCode" maxlength="24" autocomplete="postal-code" />
+  </label></div>
+  <label>Delivery instructions (optional)
+   <textarea name="notes" [(ngModel)]="delivery.deliveryNotes" maxlength="500" rows="2" placeholder="Floor, entry instructions, etc."></textarea>
+  </label>
+  <h4>Delivery map location <span class="muted tiny">(required pin)</span></h4>
+  <button type="button" class="secondary" [disabled]="locating()" (click)="useCurrentLocation()">{{locating()?'Locating…':'Use my current location'}}</button>
+  <p class="muted tiny">Allow location access on HTTPS or localhost, or enter coordinates from your map app. Check the pin before ordering.</p>
+  <div class="field-pair"><label>Latitude
+   <input type="number" name="latitude" [(ngModel)]="delivery.latitude" required min="-90" max="90" step="any" placeholder="e.g. 33.8938" />
+  </label><label>Longitude
+   <input type="number" name="longitude" [(ngModel)]="delivery.longitude" required min="-180" max="180" step="any" placeholder="e.g. 35.5018" />
+  </label></div>
+  @if(validCoordinates()) {<a [href]="mapUrl()" target="_blank" rel="noopener noreferrer">Verify pin on OpenStreetMap ↗</a>}
+  <div class="checkout-actions"><button class="primary" type="submit" [disabled]="busy() || deliveryForm.invalid || !validCoordinates()">{{busy()?'Submitting…':'Place order'}}</button><p class="muted tiny">Stock and prices are checked again when you submit. The final quantities are the saved cart quantities.</p></div>
+ </form>}
+ }@else{<p class="muted">Your cart is empty or has not been loaded yet.</p>}
+</section>

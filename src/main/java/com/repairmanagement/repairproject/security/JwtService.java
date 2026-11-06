@@ -18,8 +18,8 @@ public class JwtService {
     public JwtService(JwtEncoder encoder, @Value("${app.jwt.issuer}") String issuer,
                       @Value("${app.jwt.audience}") String audience,
                       @Value("${app.jwt.access-token-minutes:30}") long durationMinutes) {
-        if (durationMinutes < 1 || durationMinutes > 60)
-            throw new IllegalArgumentException("JWT lifetime must be 1–60 minutes");
+        if (durationMinutes < 1 || durationMinutes > 720)
+            throw new IllegalArgumentException("JWT lifetime must be 1–720 minutes");
         this.encoder = encoder;
         this.issuer = issuer;
         this.audience = audience;

@@ -1,0 +1,40 @@
+<section class="panel" aria-label="Whish wallet transfer">
+  <app-test-hello/>
+  <h4>Pay by Whish-to-Whish transfer</h4>
+  <p class="muted tiny">Send money in your Whish app. This website never accesses your wallet or sends funds.</p>
+  @if(error()){<p class="error" role="alert">{{error()}}</p>}
+  @if(message()){<p class="success" role="status">{{message()}}</p>}
+  @if(instructions();as w){
+    <div class="repair-action-box">
+      <p>Pay <strong>{{w.amount | number:'1.2-2'}} {{w.currencyCode}}</strong> to this shop's Whish number:</p>
+      <p><strong>{{w.receiverPhone}}</strong></p>
+      <button type="button" class="secondary" (click)="copy(w.receiverPhone)">Copy receiving number</button>
+      <p class="tiny muted">Check the recipient's identity inside Whish before transferring. Use the exact amount and currency shown. Do not send a second transfer for a pending reference.</p>
+      @if(!hasUnresolvedTransfer()){
+        <p class="tiny muted">Account: <strong>{{auth.user()?.fullName}}</strong> · Client #{{auth.user()?.id}}</p>
+        <label>Sender name (as shown in Whish)
+          <input type="text" name="whishSenderName" [(ngModel)]="senderName" minlength="2" maxlength="150" autocomplete="name" placeholder="Name on sending wallet" />
+        </label>
+        <label>Sender Whish phone number
+          <input type="tel" name="whishSenderPhone" [(ngModel)]="senderPhone" minlength="6" maxlength="40" autocomplete="tel" placeholder="+961xxxxxxxx" />
+        </label>
+        <label>Transfer reference shown by Whish
+          <input type="text" [(ngModel)]="reference" maxlength="120" minlength="5" placeholder="Whish transaction reference" autocomplete="off" />
+        </label>
+        <button type="button" class="primary" [disabled]="busy()||!validSender()||reference.trim().length<5" (click)="submit()">Submit transfer for verification</button>
+      }
+    </div>
+  }@else{
+    <p class="muted tiny">Payment instructions are only available for an unpaid order or issued invoice with a configured Whish wallet.</p>
+  }
+  <h5>Transfer verification status</h5>
+  @for(t of transfers();track t.id){
+    <p><strong>{{t.reference}}</strong> — {{t.amount | number:'1.2-2'}} {{t.currencyCode}}
+      <strong>{{t.status}}</strong>
+      <span class="tiny muted">· Sender: {{t.senderName || 'Not recorded'}} · {{t.senderPhone || 'No phone recorded'}}</span>
+      @if(t.recordedOnInvoice){<span class="muted tiny">· Recorded on invoice</span>}
+      @if(t.reviewNote){<span class="muted tiny">· {{t.reviewNote}}</span>}
+    </p>
+  }@empty{<p class="muted tiny">No transfer reference submitted yet.</p>}
+  <button type="button" class="secondary" [disabled]="busy()" (click)="load()">Refresh payment status</button>
+</section>

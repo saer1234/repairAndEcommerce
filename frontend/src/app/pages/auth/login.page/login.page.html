@@ -1,0 +1,16 @@
+<main class="auth-layout"><section class="auth-card">
+  <div class="logo">
+	<div style="width:100%;display:flex;justify-content:center">
+      <img style="width:40%;height:auto" src="assets/wolflog.jfif" alt="wolf Loginx"/>
+  </div>
+    <p style="text-align:center;width:100%">Wolf Tech Repair</p>
+  </div>  
+  <p class="muted">Sign in to your repair management workspace.</p>
+  <form (ngSubmit)="submit()">
+    <label>Email <input type="email" name="email" [(ngModel)]="email" autocomplete="username" required /></label>
+    <label>Password <input type="password" name="password" [(ngModel)]="password" autocomplete="current-password" required /></label>
+    @if(error()){<p class="error" role="alert">{{error()}}</p>}
+    <button class="primary" type="submit" [disabled]="busy()">{{busy()?'Signing in…':'Sign in'}}</button>
+  </form>
+  <p class="muted">New here? <a routerLink="/register">Create an account</a></p>
+</section></main>

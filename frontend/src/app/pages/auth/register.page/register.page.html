@@ -1,0 +1,23 @@
+<main class="auth-layout"><section class="auth-card">
+  <div class="logo">
+    <div style="justify-content:center;display:flex;width:100%;">
+        <img style="width:40%;height:auto" src="assets/wolflog.jfif"/>
+      
+    </div>
+    <p style="text-align:center;width:100%;">Create Account</p>
+  </div>
+
+<form (ngSubmit)="submit()">
+<label>Full name <input name="fullName" [(ngModel)]="fullName" required maxlength="150" /></label>
+<label>Email <input name="email" [(ngModel)]="email" type="email" required /></label>
+<label>Password <input name="password" [(ngModel)]="password" type="password" autocomplete="new-password" minlength="8" required /></label>
+<label>Register as
+  <select name="accountType" [(ngModel)]="accountType" required>
+    <option value="CLIENT">Client — shop and track repairs</option>
+    <!--<option value="OWNER">Owner — register and manage a company</option>-->
+  </select>
+</label>
+<label>Phone (optional) <input name="phone" [(ngModel)]="phone" /></label>
+@if(error()){<p class="error" role="alert">{{error()}}</p>}
+<button class="primary" [disabled]="busy()">{{busy()?'Registering…':'Create account'}}</button></form>
+<p class="muted">Already registered? <a routerLink="/login">Sign in</a></p></section></main>

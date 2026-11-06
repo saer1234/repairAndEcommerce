@@ -1,0 +1,54 @@
+ <section class="repair-invoice panel" aria-label="Repair invoice">
+      <div class="panel-heading"><div>
+        <h3>Repair invoice & technical report</h3>
+        <p class="muted tiny">Diagnosis, technician, parts, labor and the amount charged.</p>
+      </div><button type="button" class="secondary" (click)="load()" [disabled]="busy()">Refresh</button></div>
+      @if (error()) {<p class="error" role="alert">{{error()}}</p>}
+      @if (message()) {<p class="success" role="status">{{message()}}</p>}
+      @if (invoice(); as inv) {
+        <p><strong>{{inv.invoiceNumber}}</strong> <span class="chip">{{inv.status}}</span></p>
+        <div class="invoice-summary-grid">
+          <div><span class="muted tiny">Technician</span><strong>{{inv.technicianName}}</strong></div>
+          <div><span class="muted tiny">Device</span><strong>{{inv.device}}</strong></div>
+          <div><span class="muted tiny">Customer</span><strong>{{inv.customerName}}</strong></div>
+        </div>
+        <div class="report-text"><h4>Why is this repair required?</h4><p>{{inv.diagnosis}}</p>
+          <h4>What did the technician do?</h4><p>{{inv.workPerformed}}</p></div>
+        <div class="table-scroll"><table class="responsive-price-table">
+          <thead><tr><th>Service / part</th><th>Qty</th><th>Unit price</th><th>Total</th></tr></thead>
+          <tbody>@for(line of inv.items;track $index){<tr>
+            <td data-label="Description">{{line.description}}</td>
+            <td data-label="Qty">{{line.quantity}}</td>
+            <td data-label="Unit price">{{line.unitPrice | number:'1.2-2'}}</td>
+            <td data-label="Total">{{line.lineTotal | number:'1.2-2'}}</td>
+          </tr>}</tbody>
+        </table></div>
+        <div class="invoice-totals"><p>Subtotal <strong>{{inv.subtotal | number:'1.2-2'}} {{inv.currencyCode}}</strong></p>
+          <p>Tax <strong>{{inv.taxAmount | number:'1.2-2'}} {{inv.currencyCode}}</strong></p>
+          <p class="invoice-total">Total <strong>{{inv.totalAmount | number:'1.2-2'}} {{inv.currencyCode}}</strong></p>
+        </div>
+        @if(manager && inv.status==='DRAFT'){
+          <div class="repair-action-box"><label>Due date <input type="date" [(ngModel)]="dueDate" /></label>
+          <button class="primary" type="button" (click)="issue()" [disabled]="busy()">Issue invoice to client</button></div>
+        }
+        @if(inv.status==='ISSUED'||inv.status==='PAID'){
+          <div class="table-actions"><button type="button" class="primary" (click)="print(false)">Print customer invoice</button>
+            @if(manager){<button type="button" class="secondary" (click)="print(true)" [disabled]="!internal()">Print internal profit copy</button>}
+          </div>
+        }
+        @if(!manager && inv.status==='ISSUED'){<app-whish-payment [companyId]="companyId" [invoiceId]="inv.invoiceId" />}
+        @if(manager && internal(); as finance){
+          <div class="margin-preview"><span>Internal direct costs: {{finance.totalDirectCost | number:'1.2-2'}} {{inv.currencyCode}}</span>
+            <strong>Gross profit (before tax): {{finance.grossProfitBeforeTax | number:'1.2-2'}} {{inv.currencyCode}}</strong>
+            <small class="muted">Restricted to owners/managers. Excludes operating costs and payment fees.</small></div>
+        }
+      } @else if(manager && (status==='COMPLETED'||status==='DELIVERED')) {
+        <div class="repair-action-box">
+          <p class="muted">No invoice for this repair yet. Before issuing, save the technician's diagnosis, work performed, and labor charges.</p>
+          <label>Tax amount ({{currency()}})<input type="number" min="0" step="0.01" [(ngModel)]="taxAmount" /></label>
+          <button type="button" class="primary" [disabled]="busy()" (click)="create()">Create draft repair invoice</button>
+        </div>
+      } @else if(!manager) {
+        <p class="muted">The repair invoice will appear once the company issues it.</p>
+      }
+    </section>

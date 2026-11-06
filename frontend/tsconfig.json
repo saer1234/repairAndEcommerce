@@ -13,6 +13,8 @@
     "moduleResolution": "bundler",
     "module": "es2022",
     "target": "es2022",
+    "allowImportingTsExtensions": true, /* Required for bundling explicit .ts imports */
+    "noEmit": true,                     /* Required when allowImportingTsExtensions is true */
     "lib": [
       "es2022",
       "dom"

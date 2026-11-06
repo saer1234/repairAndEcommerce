@@ -1,0 +1,29 @@
+<section class="panel" aria-label="Manual Whish wallet verification">
+ <h3>Whish receiving wallet & verification</h3>
+ <p class="muted tiny">Only owners/managers can change the receiving number or confirm transfers. No automated Whish API is connected.</p>
+ @if(error()){<p class="error" role="alert">{{error()}}</p>}
+ @if(message()){<p class="success" role="status">{{message()}}</p>}
+ <label>Shop's verified Whish receiving phone
+   <input type="tel" [(ngModel)]="phone" placeholder="+961xxxxxxxx" autocomplete="tel" />
+ </label>
+ <div class="table-actions"><button type="button" class="primary" (click)="save()" [disabled]="busy()||!phone.trim()">Save Whish number</button>
+ <button type="button" class="secondary" (click)="load()">Refresh transfers</button></div>
+ <p class="muted tiny">Make sure the receiving wallet belongs to the company and is permitted for business use.</p>
+ <h4>Transfers to review</h4>
+ @for(t of transfers();track t.id){
+   <div class="repair-action-box">
+    <p><strong>{{t.status}}</strong> · {{t.amount | number:'1.2-2'}} {{t.currencyCode}}</p>
+    <p>Reference: <strong>{{t.reference}}</strong> · Receiver: {{t.receiverPhone}}</p>
+    <p>@if(t.orderId){Order #{{t.orderId}}}@else{Invoice #{{t.invoiceId}}} · Client #{{t.customerId}} — {{t.clientAccountName}}</p>
+    <p><strong>Reported Whish sender:</strong> {{t.senderName || 'Not recorded'}} · {{t.senderPhone || 'Not recorded'}}</p>
+    @if(t.reviewNote){<p class="muted tiny">Review: {{t.reviewNote}}</p>}
+    @if(t.status==='PENDING'){
+      <p class="muted tiny">Open your Whish app. Match receiving wallet, exact amount, currency and reference with a settled incoming transfer BEFORE verifying.</p>
+      <label>Reason (required for rejection)
+      <input type="text" [(ngModel)]="notes[t.id]" placeholder="Why is this transfer invalid?" maxlength="500" /></label>
+      <div class="table-actions"><button type="button" class="primary" [disabled]="busy()" (click)="verify(t)">I verified receipt</button>
+      <button type="button" class="secondary" [disabled]="busy()||!(notes[t.id]||'').trim()" (click)="reject(t)">Reject</button></div>
+    }
+   </div>
+ }@empty{<p class="muted">No Whish submissions for this company.</p>}
+</section>

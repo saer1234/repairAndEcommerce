@@ -1,0 +1,307 @@
+ <section class="page-heading">
+      <div>
+        <h1>Repair workspace</h1>
+        <p class="muted">Company-private repair queue, assignment, status, parts and labor.</p>
+      </div>
+      <button class="secondary" type="button" [disabled]="loading()" (click)="refresh()">Refresh</button>
+    </section>
+    @if (error()) { <p class="error" role="alert">{{ error() }}</p> }
+    @if (message()) { <p class="success" role="status">{{ message() }}</p> }
+    @if (!ctx.managedSelected() || !isStaff()) {
+      <div class="panel"><p>Select a company under <strong>My workspace (private)</strong>, where you are an employee, manager or owner.</p></div>
+    } @else {
+      <div class="repair-summary-strip">
+        <div class="metric"><small>Company repairs</small><strong>{{ repairs().length }}</strong></div>
+        <div class="metric"><small>Open repairs</small><strong>{{ openCount() }}</strong></div>
+        <div class="metric"><small>Completed / delivered</small><strong>{{ doneCount() }}</strong></div>
+        @if (canManage() && summary(); as s) {
+          <div class="metric"><small>Estimated gross profit (finalized)</small><strong>{{ s.estimatedGrossProfit | number:'1.2-2' }} {{ s.currencyCode }}</strong></div>
+        }
+      </div>
+      <section class="panel">
+        <h3>Register a repair for a client</h3>
+        <p class="muted tiny">Employees and managers must choose an active registered Client account. The repair belongs to that account, and its name is saved automatically.</p>
+        <div class="field-pair">
+          <label>Search client account
+            <input type="search" name="clientSearch" [(ngModel)]="clientSearch" (ngModelChange)="onClientSearchChanged()"
+                   placeholder="At least 2 characters of name or email" maxlength="80" />
+          </label>
+          <button class="secondary" type="button" (click)="searchClients()"
+                  [disabled]="clientSearch.trim().length < 2 || clientsLoading()">{{ clientsLoading() ? 'Searching…' : 'Find client' }}</button>
+        </div>
+        @if (clientSearchError()) { <p class="error" role="alert">{{ clientSearchError() }}</p> }
+        @if (clientResults().length) {
+          <form #createRepairForm="ngForm" (ngSubmit)="createForClient()">
+            <label>Registered client account *
+              <select name="selectedClientId" [(ngModel)]="selectedClientId" (ngModelChange)="onClientSelected()" required>
+                <option [ngValue]="null" disabled>Choose client</option>
+                @for (client of clientResults(); track client.id) {
+                  <option [ngValue]="client.id">{{ client.fullName }} — {{ client.email }} (account #{{ client.id }})</option>
+                }
+              </select>
+            </label>
+            <div class="field-pair">
+              <label>Contact phone for this repair *
+                <input name="newClientPhone" type="tel" [(ngModel)]="newClientPhone" minlength="6" maxlength="40" required />
+              </label>
+              <label>Device type *
+                <input name="newDeviceType" [(ngModel)]="newDeviceType" maxlength="100" required placeholder="Mobile phone" />
+              </label>
+            </div>
+            <div class="field-pair">
+              <label>Brand <input name="newBrand" [(ngModel)]="newBrand" maxlength="100" /></label>
+              <label>Model <input name="newModel" [(ngModel)]="newModel" maxlength="120" /></label>
+            </div>
+            <label>Problem description *
+              <textarea name="newIssue" [(ngModel)]="newIssue" maxlength="4000" required></textarea>
+            </label>
+            <button class="primary" type="submit" [disabled]="createRepairForm.invalid || selectedClientId === null || creatingRepair()">
+              {{ creatingRepair() ? 'Creating…' : 'Create repair for client' }}
+            </button>
+          </form>
+        } @else if (clientSearched() && !clientsLoading() && !clientSearchError()) {
+          <p class="muted">No eligible client accounts matched your search.</p>
+        }
+      </section>
+      <div class="repair-workspace-layout">
+        <section class="panel repair-queue">
+          <h3>{{ ctx.managedCompany()?.name }} — Repair queue</h3>
+          <div class="field-pair">
+            <label>Status
+              <select name="filterStatus" [(ngModel)]="filterStatus">
+                <option value="ALL">All statuses</option>
+                @for (status of statuses; track status) {<option [value]="status">{{ readableStatus(status) }}</option>}
+              </select>
+            </label>
+            <label>Search
+              <input name="filterQuery" [(ngModel)]="filterQuery" placeholder="ID, client name, phone, device" />
+            </label>
+          </div>
+          @if (loading()) { <p class="muted">Loading repair queue…</p> }
+          <div class="repair-list">
+            @for (r of filteredRepairs(); track r.id) {
+              <button type="button" class="repair-list-card" [class.selected]="selected()?.id === r.id"
+                      (click)="selectRepair(r)">
+                <span><strong>#{{ r.id }} — {{ deviceName(r) }}</strong>
+                  <small class="muted">{{ r.createdAt | date:'mediumDate' }} · {{ r.issueDescription }}</small>
+                  <small class="muted">Client: {{ r.clientName || 'Not recorded' }} · {{ r.clientPhone || 'No phone recorded' }}</small>
+                  <small class="muted">Assigned: {{ employeeName(r.assignedEmployeeId) }}</small>
+                </span>
+                <span class="chip">{{ readableStatus(r.status) }}</span>
+              </button>
+            }
+            @if (!loading() && !filteredRepairs().length) {
+              <p class="muted">No matching repair requests.</p>
+            }
+          </div>
+        </section>
+
+        <section class="panel repair-detail-panel">
+          @if (selected(); as r) {
+            <div class="panel-heading">
+              <div><h3>Repair #{{ r.id }}</h3><p class="muted">{{ deviceName(r) }} · {{ r.deviceType }}</p></div>
+              <span class="chip">{{ readableStatus(r.status) }}</span>
+            </div>
+            <div class="repair-action-box">
+              <h4>Client contact information</h4>
+              <p><strong>Name:</strong> {{ r.clientName || 'Not recorded' }}</p>
+              <p><strong>Phone:</strong>
+                @if (r.clientPhone) {
+                  <a [href]="'tel:' + r.clientPhone">{{ r.clientPhone }}</a>
+                } @else { Not recorded }
+              </p>
+              <p class="muted tiny">Submitting account #{{ r.customerId }}</p>
+            </div>
+            <p><strong>Problem:</strong> {{ r.issueDescription }}</p>
+            <p><strong>Assigned to:</strong> {{ employeeName(r.assignedEmployeeId) }}</p>
+            <div class="repair-detail-grid">
+              <div><span class="muted tiny">Parts charge</span><strong>{{ r.partsCharge | number:'1.2-2' }} {{ r.currencyCode }}</strong></div>
+              <div><span class="muted tiny">Labor charge</span><strong>{{ r.laborCharge | number:'1.2-2' }} {{ r.currencyCode }}</strong></div>
+              <div><span class="muted tiny">Customer total</span><strong>{{ r.totalCharge | number:'1.2-2' }} {{ r.currencyCode }}</strong></div>
+              @if (canManage()) {
+                <div><span class="muted tiny">Internal parts cost</span><strong>{{ (r.partsCost ?? 0) | number:'1.2-2' }} {{ r.currencyCode }}</strong></div>
+                <div><span class="muted tiny">Internal labor cost</span><strong>{{ (r.laborCost ?? 0) | number:'1.2-2' }} {{ r.currencyCode }}</strong></div>
+                <div><span class="muted tiny">Estimated gross profit</span><strong>{{ (r.estimatedGrossProfit ?? 0) | number:'1.2-2' }} {{ r.currencyCode }}</strong></div>
+              }
+            </div>
+
+            @if (canManage() && isOpen(r)) {
+              <form class="repair-action-box" (ngSubmit)="assign()">
+                <h4>Assign employee</h4>
+                <label>Company team member
+                  <select name="employeeId" [(ngModel)]="employeeId" required>
+                    <option [ngValue]="null" disabled>Choose a team member</option>
+                    @for (member of members(); track member.userId) {
+                      <option [ngValue]="member.userId">{{ member.fullName }} ({{ member.role }})</option>
+                    }
+                  </select>
+                </label>
+                <button class="secondary" type="submit" [disabled]="busy() || employeeId === null">Assign</button>
+                @if (!members().length) {<p class="muted tiny">Add people to the company using Companies & teams first.</p>}
+              </form>
+            }
+
+            @if (canEdit(r) && nextStatuses(r).length) {
+              <form class="repair-action-box" (ngSubmit)="updateStatus()">
+                <h4>Update repair status</h4>
+                <label>Next status
+                  <select name="nextStatus" [(ngModel)]="nextStatus" required>
+                    @for (option of nextStatuses(r); track option) {
+                      <option [ngValue]="option">{{ readableStatus(option) }}</option>
+                    }
+                  </select>
+                </label>
+                @if (nextStatus === 'COMPLETED') {
+                  @if (r.assignedEmployeeId === null) {
+                    <p class="error" role="alert">Assign a technician before completing this repair.</p>
+                  } @else if (!reportDiagnosis.trim() || !reportWork.trim()) {
+                    <p class="error" role="alert">Before completing, fill in both fields in the Technical diagnosis &amp; work report below.</p>
+                  } @else {
+                    <p class="muted tiny">The technical report will be saved before the repair is marked completed.</p>
+                  }
+                }
+                <label>Internal note (employees only)
+                  <textarea name="statusNote" [(ngModel)]="statusNote" maxlength="2000" placeholder="Private technical diagnosis / work details"></textarea>
+                </label>
+                <label>Customer-facing update (shown in tracking)
+                  <textarea name="customerNote" [(ngModel)]="customerNote" maxlength="2000" placeholder="Example: We have diagnosed the issue and ordered a replacement part"></textarea>
+                </label>
+                <button class="primary" type="submit" [disabled]="busy() || !nextStatus || !nextStatuses(r).includes(nextStatus)">
+                  {{ nextStatus === 'COMPLETED' ? 'Save report & complete repair' : 'Save status update' }}
+                </button>
+              </form>
+            } @else if (isStaff() && !canManage()) {
+              <p class="muted tiny">Only the assigned employee or a manager can update this repair. Only managers can mark it delivered.</p>
+            }
+
+            @if (canEdit(r) && isOpen(r)) {
+              <form class="repair-action-box" (ngSubmit)="publishProgress()">
+                <h4>Send a progress update to the customer</h4>
+                <p class="muted tiny">Publish an update without changing the repair status.</p>
+                <label>Progress update
+                  <textarea name="progressMessage" [(ngModel)]="progressMessage" required maxlength="2000"
+                            placeholder="Example: Your device is being tested"></textarea>
+                </label>
+                <button class="secondary" type="submit" [disabled]="busy() || !progressMessage.trim()">
+                  Publish update
+                </button>
+              </form>
+            }
+
+            @if (canEdit(r) && (isOpen(r) || (canManage() && r.status === 'COMPLETED'))) {
+              <form class="repair-action-box" (ngSubmit)="saveReport()">
+                <h4>Technical diagnosis & work report</h4>
+                <p class="muted tiny">This explanation and the assigned technician's name appear on the customer's final repair invoice.</p>
+                <label>Why the device needed repair *
+                  <textarea name="reportDiagnosis" [(ngModel)]="reportDiagnosis" required maxlength="4000" rows="3" placeholder="Diagnosis, affected component, diagnostic findings"></textarea>
+                </label>
+                <label>What work was performed *
+                  <textarea name="reportWork" [(ngModel)]="reportWork" required maxlength="4000" rows="3" placeholder="Testing, replacement work, calibration, post-repair checks"></textarea>
+                </label>
+                <button type="submit" class="secondary" [disabled]="busy() || !reportDiagnosis.trim() || !reportWork.trim()">Save technical report</button>
+              </form>
+            }
+
+            @if (canManage() && (r.status==='COMPLETED'||r.status==='DELIVERED')) {
+              <app-repair-invoice [companyId]="r.companyId" [repairId]="r.id" [status]="r.status" [manager]="true" />
+            }
+
+            @if (canEdit(r) && partsAllowed(r.status)) {
+              <form class="repair-action-box" (ngSubmit)="addPart()">
+                <h4>Compatible parts in stock</h4>
+                <p class="muted tiny">Repair device: <strong>{{ r.deviceType }} / {{ r.brand || 'Brand missing' }} / {{ r.model || 'Model missing' }}</strong></p>
+                <div class="repair-fit-counts" aria-live="polite">
+                  <span class="repair-fit-exact">{{ verifiedStockCount(r) }} exact model matches in stock</span>
+                  <span class="repair-fit-check">{{ unverifiedStockCount(r) }} need fit verification</span>
+                </div>
+                @if (!r.brand?.trim() || !r.model?.trim()) {
+                  <p class="error">This repair has no complete brand and model. Exact fit cannot be established until these device details are recorded.</p>
+                }
+                <div class="field-pair">
+                  <label>Search stock
+                    <input type="search" name="partSearch" [(ngModel)]="partSearch" (ngModelChange)="resetPartChoice()" placeholder="Part name, SKU, category" />
+                  </label>
+                  <label>Component category
+                    <select name="partCategory" [(ngModel)]="partCategory" (ngModelChange)="resetPartChoice()">
+                      <option value="ALL">All components</option>
+                      @for (category of stockCategories(r); track category) { <option [value]="category">{{ category }}</option> }
+                    </select>
+                  </label>
+                </div>
+                <label>Fit level
+                  <select name="partFitMode" [(ngModel)]="partFitMode" (ngModelChange)="resetPartChoice()">
+                    <option value="verified">Exact recorded fit only (recommended)</option>
+                    <option value="include-unverified">Include parts that need verification</option>
+                  </select>
+                </label>
+                <label>Available stock item
+                  <select name="partItemId" [(ngModel)]="partItemId" (ngModelChange)="confirmUnverified=false" required>
+                    <option [ngValue]="null" disabled>Choose a stocked part</option>
+                    @for (item of availableStock(); track item.id) {
+                      <option [ngValue]="item.id">{{ item.name }} · {{ item.category || 'General' }} · {{ item.sku }} · Qty {{ item.stockQuantity }} · {{ partFit(item,r)==='compatible' ? 'Exact recorded fit' : 'Needs verification' }}</option>
+                    }
+                  </select>
+                </label>
+                @if (availableStock().length === 0) {
+                  <p class="muted">No matching stocked parts. Try a different category or include unverified fits. If the part is missing, ask a manager to update inventory compatibility.</p>
+                }
+                <label>Quantity to use
+                  <input type="number" name="partQuantity" [(ngModel)]="partQuantity" min="1" step="1" required />
+                </label>
+                @if (selectedPartFit(r)==='unspecified') {
+                  <label class="repair-fit-confirm"><input type="checkbox" name="confirmUnverified" [(ngModel)]="confirmUnverified" /> I checked this part's physical compatibility with the device.</label>
+                }
+                <p class="muted tiny">An exact match means the compatibility was recorded by the store; it is not a manufacturer certification. Check part numbers before installation. Adding a part deducts quantity and records the technician.</p>
+                <button class="secondary" type="submit" [disabled]="busy() || !validPart()">Use part from stock</button>
+              </form>
+            }
+
+            @if (canManage() && isOpen(r)) {
+              <form class="repair-action-box" (ngSubmit)="updateLabor()">
+                <h4>Labor pricing (manager only)</h4>
+                <div class="field-pair">
+                  <label>Customer labor charge
+                    <input type="number" name="laborCharge" [(ngModel)]="laborCharge" min="0" step="0.01" required />
+                  </label>
+                  <label>Internal labor cost
+                    <input type="number" name="laborCost" [(ngModel)]="laborCost" min="0" step="0.01" required />
+                  </label>
+                </div>
+                <button class="secondary" type="submit" [disabled]="busy() || !validLabor()">Save labor amounts</button>
+              </form>
+            }
+
+            <div class="repair-detail-columns">
+              <div>
+                <h4>Used parts</h4>
+                @for (p of r.parts; track p.id) {
+                  <div class="repair-part-line">
+                    <strong>{{ p.itemName }} × {{ p.quantity }}</strong>
+                    <small>{{ p.unitSellingPrice * p.quantity | number:'1.2-2' }} {{ r.currencyCode }} billed</small>
+                    @if(canEdit(r) && partsAllowed(r.status)){
+                      <button class="secondary" type="button" [disabled]="busy()" (click)="returnPart(p)">Return to stock</button>
+                    }
+                    @if (canManage() && p.unitCostPrice !== undefined) {
+                      <small class="muted">Cost: {{ p.unitCostPrice * p.quantity | number:'1.2-2' }} {{ r.currencyCode }}</small>
+                    }
+                  </div>
+                }
+                @if (!r.parts.length) { <p class="muted">No parts used yet.</p> }
+              </div>
+              <div>
+                <h4>History</h4>
+                @for (u of r.updates; track u.id) {
+                  <div class="repair-timeline-entry">
+                    <strong>{{ readableStatus(u.status) }}</strong>
+                    <small class="muted">{{ u.createdAt | date:'medium' }} · User #{{ u.updatedByUserId }}</small>
+                    @if (u.note) { <p><strong>Private:</strong> {{ u.note }}</p> }
+                    @if (u.customerNote) { <p><strong>Published to client:</strong> {{ u.customerNote }}</p> }
+                  </div>
+                }
+                @if (!r.updates.length) { <p class="muted">No status updates yet.</p> }
+              </div>
+            </div>
+          } @else { <p class="muted">Select a repair from the queue to view and manage it.</p> }
+        </section>
+      </div>
+    }

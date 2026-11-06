@@ -1,0 +1,60 @@
+<section class="page-heading"><div><h1>{{ctx.canManage()?'Orders & deliveries':'My orders & invoices'}}</h1><p class="muted">{{ctx.canManage()?'Manage orders for your company, locate deliveries and print invoices.':'View your orders, delivery locations and issued invoices.'}}</p></div><button type="button" class="secondary" (click)="load()">Refresh</button></section>
+@if(error()){<p class="error" role="alert">{{error()}}</p>}
+@if(message()){<p class="success" role="status">{{message()}}</p>}
+@if(ctx.canManage() && currentCompanyId(); as managedId){<app-whish-manager [companyId]="managedId" />}
+@if(!currentCompanyId()){<p class="muted">Select a {{ctx.canManage()?'workspace':'store'}} company first.</p>}
+<div class="orders-layout"><section class="panel"><h3>{{ctx.canManage()?'Company orders':'Your orders'}}</h3>
+ @if(ctx.canManage()){
+  <div class="order-search-fields" role="search" aria-label="Search company orders">
+   <label>Order ID <input type="search" name="orderIdFilter" inputmode="numeric" [(ngModel)]="orderIdFilter" placeholder="e.g. 42" /></label>
+   <label>Client ID <input type="search" name="clientIdFilter" inputmode="numeric" [(ngModel)]="clientIdFilter" placeholder="e.g. 15" /></label>
+   <button type="button" class="secondary" (click)="clearOrderFilters()" [disabled]="!orderIdFilter && !clientIdFilter">Clear</button>
+  </div>
+  <p class="tiny muted" aria-live="polite">Showing {{filteredOrders().length}} of {{orders().length}} orders. IDs match exactly.</p>
+ }
+ @for(o of filteredOrders();track o.id){<button class="repair-list-card" type="button" [class.selected]="selected()?.id===o.id" (click)="select(o)"><span><strong>{{o.orderNumber}}</strong><small>Order #{{o.id}} · Client #{{o.customerId}} · {{o.customerName}} · {{o.orderedAt | date:'mediumDate'}}</small></span><span class="chip">{{o.status}}</span></button>}
+ @if(!orders().length){<p class="muted">No orders in this company.</p>}
+ @if(orders().length && !filteredOrders().length){<p class="muted">No orders match those IDs.</p>}
+ </section><section class="panel">
+ @if(selected();as order){
+  <div class="panel-heading"><div><h3>{{order.orderNumber}}</h3><p class="muted">{{order.orderedAt | date:'medium'}} · {{order.status}}</p></div></div>
+  <h4>Client and delivery</h4><p><strong>{{order.customerName}}</strong> · {{order.customerEmail}} · Client #{{order.customerId}}</p>
+  <p>Phone: {{order.delivery.phone || 'Not available (legacy order)'}}</p>
+  <p>{{order.delivery.streetAddress}}, {{order.delivery.city}}, {{order.delivery.postalCode}}<br/>{{order.delivery.country}}</p>
+  @if(order.delivery.notes){<p><strong>Instructions:</strong> {{order.delivery.notes}}</p>}
+  @if(order.delivery.latitude!==null && order.delivery.longitude!==null){<p><a [href]="mapUrl(order)" target="_blank" rel="noopener noreferrer">Open delivery pin on map ↗</a> · {{order.delivery.latitude}}, {{order.delivery.longitude}}</p>}
+  <h4>Items</h4><div class="table-scroll"><table><thead><tr><th>Product</th><th>Quantity</th><th>Price</th><th>Total</th></tr></thead><tbody>
+  @for(line of order.items;track line.itemId){<tr><td>{{line.name}}</td><td>{{line.quantity}}</td><td>{{line.unitSellingPrice | number:'1.2-2'}}</td><td>{{line.lineTotal | number:'1.2-2'}}</td></tr>}
+  </tbody></table></div><p><strong>Order subtotal: {{order.totalAmount | number:'1.2-2'}} {{order.currencyCode}}</strong></p>
+@if(!ctx.canManage() && order.status!=='CANCELLED' && order.status!=='REFUNDED'){
+  @if(invoiceFor(order.id);as issuedInvoice){
+    @if(issuedInvoice.status==='ISSUED'){<app-whish-payment [companyId]="currentCompanyId()!" [invoiceId]="issuedInvoice.id" />}
+  }@else{<app-whish-payment [companyId]="currentCompanyId()!" [orderId]="order.id" />}
+}
+  @if(ctx.canManage()){
+   <div class="repair-action-box"><h4>Owner / manager actions</h4>
+    @if(order.status==='CONFIRMED'){<button type="button" [disabled]="busy()" (click)="complete(order)">Mark fulfilled</button>}
+    @if(order.status==='COMPLETED'){
+     @if(profit();as p){<div class="margin-preview"><span>Recorded sales: {{p.revenue | number:'1.2-2'}} {{p.currencyCode}}</span><span>Acquisition costs: {{p.acquisitionCost | number:'1.2-2'}} {{p.currencyCode}}</span><strong>Gross profit: {{p.grossProfit | number:'1.2-2'}} {{p.currencyCode}}</strong><span class="tiny muted">Before delivery expenses, fees and taxes.</span></div>}
+     @if(!invoiceFor(order.id)){
+      <p class="muted tiny">After fulfillment, create a formal invoice. Set the correct tax amount for your jurisdiction.</p>
+      <label>Tax amount ({{order.currencyCode}})<input type="number" min="0" step="0.01" [(ngModel)]="taxAmount" /></label>
+      <button type="button" [disabled]="busy()" (click)="createInvoice(order)">Create draft invoice</button>
+     }
+    }
+   </div>
+  }
+  @if(invoiceFor(order.id);as inv){<div class="repair-action-box"><h4>Invoice {{inv.invoiceNumber}} · {{inv.status}}</h4>
+    <p>Total including recorded tax: <strong>{{inv.totalAmount | number:'1.2-2'}} {{inv.currencyCode}}</strong></p>
+    @if(ctx.canManage() && inv.status==='DRAFT'){
+      <label>Payment due date <input type="date" [(ngModel)]="dueDate" /></label>
+      <button type="button" [disabled]="busy()" (click)="issueInvoice(inv)">Issue invoice</button>
+    }
+    @if(inv.status==='ISSUED'||inv.status==='PAID'){
+      <div class="table-actions"><button type="button" (click)="printInvoice(order,inv,false)">Print customer invoice</button>
+      @if(ctx.canManage()){<button type="button" class="secondary" [disabled]="!profit()" (click)="printInvoice(order,inv,true)">Print internal profit copy</button>}</div>
+    }@else{<p class="muted tiny">Customer printing is available once the invoice has been issued.</p>}
+  </div>}
+  @else{<p class="muted tiny">No issued invoice for this order yet.</p>}
+ }@else{<p class="muted">Select an order to see its delivery and invoice details.</p>}
+ </section></div>

@@ -1,6 +1,7 @@
 package com.repairmanagement.repairproject.inventory;
 
 import com.repairmanagement.repairproject.company.Company;
+import com.repairmanagement.repairproject.company.ItemImages;
 import jakarta.persistence.*;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
@@ -26,6 +27,7 @@ public class Item {
 
     @Column(columnDefinition = "TEXT")
     private String description;
+
 
     // category retained for backward compatibility; new classification is deviceType -> deviceBrand.
     @Column(nullable = false, length = 80)
@@ -69,10 +71,16 @@ public class Item {
     @Column(name = "updated_at", nullable = false)
     private LocalDateTime updatedAt;
 
-    protected Item() {}
+    @OneToMany(fetch = FetchType.LAZY, mappedBy = "items")
+    private List<ItemImages> itemImages=new ArrayList<>();
+
+    protected Item() {
+
+    }
 
     public Item(Company company, String sku, String name, String description,
                 BigDecimal costPrice, BigDecimal sellingPrice, int openingStock) {
+
         this.company = company;
         this.sku = sku;
         updateDetails(sku, name, description, costPrice, sellingPrice);
@@ -83,6 +91,7 @@ public class Item {
                 BigDecimal costPrice, BigDecimal sellingPrice, int openingStock, String category) {
         this(company, sku, name, description, costPrice, sellingPrice, openingStock);
         setCategory(category);
+
     }
 
     public void updateDetails(String sku, String name, String description,
@@ -164,6 +173,7 @@ public class Item {
 
     @PrePersist
     void onCreate() {
+
         createdAt = LocalDateTime.now(ZoneOffset.UTC);
         updatedAt = createdAt;
     }
