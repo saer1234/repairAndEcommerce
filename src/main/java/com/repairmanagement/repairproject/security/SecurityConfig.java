@@ -59,6 +59,9 @@ public class SecurityConfig {
             .sessionManagement(s -> s.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
             .authorizeHttpRequests(auth -> auth
                 .requestMatchers(HttpMethod.POST, "/api/auth/register", "/api/auth/login").permitAll()
+                .requestMatchers(HttpMethod.GET, "/api/catalog/companies/*/about").permitAll()
+                // Upgrade request authenticates with a short-lived one-use ticket in the WebSocket handshake.
+                .requestMatchers(HttpMethod.GET, "/api/support/ws").permitAll()
                 .requestMatchers(HttpMethod.GET, "/api/catalog/companies", "/api/companies/*/items", "/api/companies/*/items/*", "/api/companies/*/items/*/image").permitAll()
                 // URL gate + service-layer membership check are both required.
                 .requestMatchers("/api/companies/*/cart", "/api/companies/*/cart/**").hasRole("CLIENT")

@@ -1,7 +1,7 @@
 <main class="auth-layout"><section class="auth-card">
   <div class="logo">
 	<div style="width:100%;display:flex;justify-content:center">
-      <img style="width:40%;height:auto" src="assets/wolflog.jfif" alt="wolf Loginx"/>
+      <img class="auth-wolf-logo" src="assets/wolflog-removebg-preview.png" alt="Wolf Tech Repair logo"/>
   </div>
     <p style="text-align:center;width:100%">Wolf Tech Repair</p>
   </div>  
@@ -13,4 +13,4 @@
     <button class="primary" type="submit" [disabled]="busy()">{{busy()?'Signing in…':'Sign in'}}</button>
   </form>
   <p class="muted">New here? <a routerLink="/register">Create an account</a></p>
-</section></main>
+<p class="muted"><a routerLink="/about">About Wolf Tech Repair</a></p><p class="muted"><a routerLink="/">← Back to home</a></p></section></main>

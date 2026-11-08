@@ -1,0 +1,84 @@
+<div class="wt-landing">
+  <header class="wt-topbar">
+    <a routerLink="/" class="wt-brand" aria-label="Wolf Tech Repair home">
+      <img src="assets/wolflog-removebg-preview.png" alt="" width="50" height="50" />
+      <span><strong>WOLF TECH</strong><small>REPAIR & ACCESSORIES</small></span>
+    </a>
+    <nav class="wt-header-links" aria-label="Main navigation">
+      <a class="wt-link-services" href="#services">Services</a>
+      <a routerLink="/about">About us</a>
+      @if (auth.signedIn()) {
+        <a class="wt-top-cta" routerLink="/dashboard">My workspace <span aria-hidden="true">↗</span></a>
+      } @else {
+        <a routerLink="/login">Sign in</a>
+        <a class="wt-top-cta" routerLink="/register">Get started <span aria-hidden="true">↗</span></a>
+      }
+    </nav>
+  </header>
+
+  <main id="content">
+    <section class="wt-image-hero" aria-label="Wolf Tech Repair showcase">
+      <div class="wt-hero-halo" aria-hidden="true"></div>
+      <img class="wt-showcase-image" src="assets/wolftech-showcase.jpg"
+           alt="Wolf Tech Repair — We hunt. We fix. Phone repair, accessories and mobile solutions."
+           width="1600" height="700" fetchpriority="high" />
+      <div class="wt-hero-caption">
+        <div class="wt-hero-intro">
+          <span class="wt-overline"><span class="wt-pulse" aria-hidden="true"></span> PHONE REPAIR & MOBILE SOLUTIONS</span>
+          <h1>Bring your tech <em>back to life.</em></h1>
+          <p>Explore phone repairs, accessories, and reliable support in one place.</p>
+        </div>
+        <div class="wt-hero-actions">
+          <a class="wt-button wt-button-main" [routerLink]="auth.signedIn() ? '/repairs' : '/login'">Request a repair <span aria-hidden="true">↗</span></a>
+          <a class="wt-button wt-button-outline" [routerLink]="auth.signedIn() ? (auth.canShop() ? '/shop' : '/dashboard') : '/register'">Browse accessories</a>
+        </div>
+      </div>
+    </section>
+
+    <section id="services" class="wt-section wt-services" aria-labelledby="services-heading">
+      <div class="wt-section-heading">
+        <span class="wt-overline">WHAT WE DO</span>
+        <h2 id="services-heading">Everything your device needs.</h2>
+        <p>From repair requests to the right accessories, Wolf Tech keeps your experience simple.</p>
+      </div>
+      <div class="wt-services-grid">
+        <article class="wt-service-card">
+          <div class="wt-card-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.65" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3 4 6v6c0 5 3 8 8 10 5-2 8-5 8-10V6l-8-3Z"/><path d="m8.5 12 2.5 2.5 4.5-5"/></svg></div>
+          <h3>Phone repairs</h3><p>Submit a repair request and follow its progress online.</p>
+          <a [routerLink]="auth.signedIn() ? '/repairs' : '/login'">Request repair <span aria-hidden="true">↗</span></a>
+        </article>
+        <article class="wt-service-card">
+          <div class="wt-card-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.65" stroke-linecap="round"><rect x="7" y="2.5" width="10" height="19" rx="2"/><path d="M10 18.5h4"/></svg></div>
+          <h3>All-brand solutions</h3><p>Find parts and accessories for your exact device model.</p>
+          <a [routerLink]="auth.signedIn() ? (auth.canShop() ? '/shop' : '/dashboard') : '/register'">Explore store <span aria-hidden="true">↗</span></a>
+        </article>
+        <article class="wt-service-card">
+          <div class="wt-card-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.65" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9h18M5 9l1 11h12l1-11M7 9l2-5h6l2 5M9 14h6"/></svg></div>
+          <h3>Accessories</h3><p>Shop mobile essentials, with product and compatibility details.</p>
+          <a [routerLink]="auth.signedIn() ? (auth.canShop() ? '/shop' : '/dashboard') : '/register'">View products <span aria-hidden="true">↗</span></a>
+        </article>
+        <article class="wt-service-card">
+          <div class="wt-card-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.65" stroke-linecap="round" stroke-linejoin="round"><path d="M4 5h16v13H8l-4 3V5Z"/><path d="M8 10h8m-8 4h5"/></svg></div>
+          <h3>Real support</h3><p>Reach the store through live chat when staff are available, or leave a message.</p>
+          <a [routerLink]="auth.signedIn() ? '/support' : '/login'">Contact support <span aria-hidden="true">↗</span></a>
+        </article>
+      </div>
+    </section>
+
+    <section class="wt-bottom-cta" aria-labelledby="next-step-title">
+      <div>
+        <span class="wt-overline">WOLF TECH REPAIR</span>
+        <h2 id="next-step-title">We hunt. We fix.</h2>
+        <p>Need help with your phone? Start a repair request, track an existing one, or connect with our team.</p>
+      </div>
+      <a class="wt-button wt-button-main" [routerLink]="auth.signedIn() ? '/dashboard' : '/register'">
+        {{ auth.signedIn() ? 'Open workspace' : 'Create your account' }} <span aria-hidden="true">↗</span>
+      </a>
+    </section>
+  </main>
+
+  <footer class="wt-footer">
+    <span>© Wolf Tech Repair</span>
+    <div><a routerLink="/about">About us & contact</a><a [routerLink]="auth.signedIn() ? '/support' : '/login'">Support</a></div>
+  </footer>
+</div>

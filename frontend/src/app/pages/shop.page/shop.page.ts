@@ -91,6 +91,6 @@ export class ShopPage {
   const changed=(this.cart()?.items??[]).some(i=>this.quantityDraft[i.itemId]!==i.quantity);
   if(changed){this.error.set('Save quantity changes using Update before placing the order.');return;}
   this.error.set('');this.message.set('');this.busy.set(true);
-  this.api.post<Order>(`/companies/${id}/checkout`,{...this.delivery}).subscribe({next:order=>{this.busy.set(false);this.lastOrder.set(order);this.message.set(`Order ${order.orderNumber} submitted. Use Whish transfer below if you want to pay now, or view My orders.`);this.refresh();},error:()=>{this.error.set('Checkout failed. Check delivery details and available stock.');this.busy.set(false);}});
+  this.api.post<Order>(`/companies/${id}/checkout`,{...this.delivery, expectedTotal:this.cart()?.estimatedTotal}).subscribe({next:order=>{this.busy.set(false);this.lastOrder.set(order);this.message.set(`Order ${order.orderNumber} submitted. Use Whish transfer below if you want to pay now, or view My orders.`);this.refresh();},error:()=>{this.error.set('Checkout failed. Prices may have changed; refresh your cart and confirm the total, then retry.');this.busy.set(false);this.refresh();}});
  }
 }

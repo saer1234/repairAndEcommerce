@@ -2,8 +2,8 @@ export interface User { id: number; fullName: string; email: string; phone?: str
 export interface LoginResult { accessToken: string; tokenType: 'Bearer'; expiresAt: string; user: User; }
 export interface Company { id: number; name: string; currencyCode: string; yourRole?: 'OWNER'|'MANAGER'|'EMPLOYEE'; }
 export interface CompatibleDevice { deviceType: string; deviceBrand: string; deviceModel: string; }
-export interface Product { id: number; sku: string; name: string; description: string; sellingPrice: number; currencyCode: string; inStock: boolean; imageUrl: string | null; category: string; deviceType: string; deviceBrand: string; compatibleDevices: CompatibleDevice[]; }
-export interface Cart { companyId:number; currencyCode:string; items:Array<{itemId:number; quantity:number; name:string; unitSellingPrice:number; lineTotal:number}>; estimatedTotal:number; }
+export interface Product { id: number; sku: string; name: string; description: string; sellingPrice: number; effectivePrice: number; discountPercent: number; currencyCode: string; inStock: boolean; imageUrl: string | null; category: string; deviceType: string; deviceBrand: string; compatibleDevices: CompatibleDevice[]; }
+export interface Cart { companyId:number; currencyCode:string; items:Array<{itemId:number; quantity:number; name:string; unitSellingPrice:number; originalUnitPrice:number; discountPercent:number; lineTotal:number}>; estimatedTotal:number; }
 export interface DeliveryAddress {
  phone:string; streetAddress:string; city:string; postalCode:string|null;
  country:string; notes:string|null; latitude:number|null; longitude:number|null;

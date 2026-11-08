@@ -28,6 +28,7 @@ export class ShellPage implements OnInit {
 
   ngOnInit(): void {
     this.context.refresh(() => this.error.set('Unable to load companies. Check backend connection.'));
+    console.log(this.auth.user()?.platformRole);
   }
 
   openMenu(): void {
@@ -53,7 +54,7 @@ export class ShellPage implements OnInit {
 
   @HostListener('document:keydown.tab', ['$event'])
   onTab(event: Event): void {
-	if( (event instanceof KeyboardEvent)) return;
+	if (!(event instanceof KeyboardEvent)) return;
     if (!this.menuOpen()) return;
     const drawer = this.mobileDrawer?.nativeElement;
     if (!drawer) return;
@@ -61,10 +62,10 @@ export class ShellPage implements OnInit {
     const first = focusables[0];
     const last = focusables[focusables.length - 1];
     if (!first || !last) return;
-    if ((event as KeyboardEvent).shiftKey && (document.activeElement === first || !drawer.contains(document.activeElement))) {
+    if (event.shiftKey && (document.activeElement === first || !drawer.contains(document.activeElement))) {
       event.preventDefault();
       last.focus();
-    } else if (!(event as KeyboardEvent).shiftKey && (document.activeElement === last || !drawer.contains(document.activeElement))) {
+    } else if (!event.shiftKey && (document.activeElement === last || !drawer.contains(document.activeElement))) {
       event.preventDefault();
       first.focus();
     }

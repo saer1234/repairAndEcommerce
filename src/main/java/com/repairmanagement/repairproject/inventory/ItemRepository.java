@@ -4,16 +4,21 @@ import jakarta.persistence.LockModeType;
 import java.util.List;
 import java.util.Optional;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.Lock;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
 public interface ItemRepository extends JpaRepository<Item, Long> {
+    @EntityGraph(attributePaths = "offer")
     List<Item> findByCompany_IdAndActiveTrueOrderByNameAsc(Long companyId);
+    @EntityGraph(attributePaths = "offer")
     List<Item> findByCompany_IdAndActiveTrueAndVisibleToClientsTrueOrderByNameAsc(Long companyId);
+    @EntityGraph(attributePaths = "offer")
     List<Item> findByCompany_IdOrderByNameAsc(Long companyId);
     Optional<Item> findByIdAndCompany_Id(Long itemId, Long companyId);
     Optional<Item> findByIdAndCompany_IdAndActiveTrue(Long itemId, Long companyId);
+    @EntityGraph(attributePaths = "offer")
     Optional<Item> findByIdAndCompany_IdAndActiveTrueAndVisibleToClientsTrue(Long itemId, Long companyId);
     boolean existsByCompany_IdAndSkuIgnoreCase(Long companyId, String sku);
     boolean existsByCompany_IdAndSkuIgnoreCaseAndIdNot(Long companyId, String sku, Long itemId);

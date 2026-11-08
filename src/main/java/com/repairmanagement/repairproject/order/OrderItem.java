@@ -26,11 +26,18 @@ public class OrderItem {
 
     protected OrderItem() {}
     public OrderItem(CustomerOrder order, Item item, int quantity) {
+        this(order, item, quantity, item.getEffectiveSellingPrice());
+    }
+    /** The exact checkout price is saved, so future promotions never rewrite past invoices. */
+    public OrderItem(CustomerOrder order, Item item, int quantity, BigDecimal checkoutUnitPrice) {
+        if (checkoutUnitPrice == null || checkoutUnitPrice.signum() < 0) {
+            throw new IllegalArgumentException("Invalid checkout unit price");
+        }
         this.order = order;
         this.item = item;
         this.quantity = quantity;
         this.itemNameSnapshot = item.getName();
-        this.unitSellingPrice = item.getSellingPrice();
+        this.unitSellingPrice = checkoutUnitPrice;
         this.unitCostPrice = item.getCostPrice();
     }
     public Long getId() { return id; }

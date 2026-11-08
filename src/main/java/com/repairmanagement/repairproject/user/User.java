@@ -73,4 +73,5 @@ public class User {
     public String getPhone() { return phone; }
     public PlatformRole getPlatformRole() { return platformRole; }
     public boolean isActive() { return active; }
+    public LocalDateTime getCreatedAt() { return createdAt; }
 }

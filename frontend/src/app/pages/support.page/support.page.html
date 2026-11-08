@@ -1,0 +1,189 @@
+<section class="support-page">
+  <div class="support-heading">
+    <div>
+      <p class="support-kicker">WOLF TECH SUPPORT</p>
+      <h1>{{ mode() === 'staff' ? 'Support Center' : 'Contact the shop' }}</h1>
+      <p class="support-muted">{{ mode() === 'staff' ? 'Answer live conversations and follow up on offline inquiries for your shop.' : 'Chat live when shop staff are available, or leave an inquiry when they are away.' }}</p>
+    </div>
+    <div class="support-heading-actions">
+      <a routerLink="/about">About us</a>
+      <span class="live-stream-pill" [class.live]="realtimeConnected()" role="status">{{ realtimeConnected() ? '● WebSocket connected' : '◌ Reconnecting' }}</span>
+      <button type="button" class="support-refresh" (click)="refresh()" [disabled]="loading()">Refresh</button>
+    </div>
+  </div>
+
+  @if (error()) { <p class="support-error" role="alert">{{ error() }}</p> }
+  @if (notice()) { <p class="support-notice" role="status">{{ notice() }}</p> }
+
+  @if (!context.loaded()) {
+    <div class="support-empty">Loading company information…</div>
+  } @else if (mode() === 'none') {
+    <div class="support-empty">Support is available to registered clients and active shop owners, managers, or employees. Select your shop first.</div>
+  } @else if (!companyId()) {
+    <div class="support-empty">Select a company from the shop or workspace selector to continue.</div>
+  } @else {
+    <div class="support-presence-bar">
+      <div class="support-presence-text">
+        <span class="presence-dot" [class.online]="availability()?.online"></span>
+        <div>
+          <strong>{{ availability() === null ? 'Checking availability…' : availability()?.online ? 'Live support online' : 'Live support offline' }}</strong>
+          <p>{{ availability()?.online ? (availability()!.availableAgents + ' team member(s) available for live chat') : 'You can still send an offline message to the shop.' }}</p>
+        </div>
+      </div>
+      @if (mode() === 'staff') {
+        <button type="button" class="presence-toggle" [class.active]="availableForChat()" (click)="toggleAvailability()" [disabled]="busy()">
+          {{ availableForChat() ? 'Go offline' : 'I am available for chat' }}
+        </button>
+      }
+    </div>
+
+    @if (mode() === 'staff') {
+      <div class="support-tabs" role="group" aria-label="Support inbox categories">
+        <button type="button" [class.active]="staffTab() === 'live'" (click)="staffTab.set('live')">
+          Live conversations <span>{{ inbox().length }}</span>
+        </button>
+        <button type="button" [class.active]="staffTab() === 'offline'" (click)="staffTab.set('offline')">
+          Offline inquiries <span>{{ pendingOffline() }} awaiting reply</span>
+        </button>
+      </div>
+    }
+
+    @if (mode() === 'client' && !availability()?.online) {
+      <section class="offline-form-panel" aria-label="Leave an offline inquiry">
+        <div class="offline-panel-header">
+          <span aria-hidden="true">✉</span>
+          <div>
+            <h2>Our team is currently offline</h2>
+            <p>Live chat is unavailable. Leave a message, and the shop can reply when a team member returns.</p>
+          </div>
+        </div>
+        <form (ngSubmit)="sendOffline()" class="offline-form">
+          <label for="offlineBody">Your message</label>
+          <textarea id="offlineBody" name="offlineBody" [(ngModel)]="offlineDraft" maxlength="2000" rows="4"
+            placeholder="Tell us how we can help with your product, order, or repair…" [disabled]="busy()"></textarea>
+          <div class="support-compose-bottom">
+            <small>{{ offlineDraft.length }}/2000 · Only this shop's staff can read it.</small>
+            <button type="submit" [disabled]="busy() || !offlineDraft.trim()">{{ busy() ? 'Sending…' : 'Send offline message' }}</button>
+          </div>
+        </form>
+      </section>
+    }
+
+    @if (mode() === 'staff' && staffTab() === 'offline') {
+      <div class="support-layout support-layout-manager">
+        <aside class="support-inbox" aria-label="Offline inquiries">
+          <div class="support-inbox-title"><h2>Customer inquiries</h2><span>{{ offlineMessages().length }}</span></div>
+          @for (m of offlineMessages(); track m.id) {
+            <button type="button" class="support-thread" [class.selected]="selectedOffline()?.id === m.id" (click)="chooseOffline(m)">
+              <strong>{{ m.customerName }}</strong><small>{{ m.customerEmail }}</small>
+              <span class="support-thread-meta"><span>{{ m.reply ? 'Answered' : 'Awaiting reply' }}</span><time>{{ m.createdAt | date:'short' }}</time></span>
+            </button>
+          } @empty { <div class="support-inbox-empty">No offline inquiries yet.</div> }
+        </aside>
+        <section class="support-chat" aria-label="Offline inquiry details">
+          @if (selectedOffline(); as inquiry) {
+            <header class="support-chat-header"><div><h2>{{ inquiry.customerName }}</h2><p>{{ inquiry.customerEmail }}</p></div>
+              <span class="support-status" [class.closed]="!!inquiry.reply">{{ inquiry.reply ? 'Answered' : 'New inquiry' }}</span>
+            </header>
+            <div class="support-message-list">
+              <div class="support-bubble"><p class="support-author">{{ inquiry.customerName }}</p><p class="support-body">{{ inquiry.body }}</p>
+                <time>{{ inquiry.createdAt | date:'medium' }}</time></div>
+              @if (inquiry.reply) {
+                <div class="support-bubble mine"><p class="support-author">{{ inquiry.repliedByName }}</p>
+                  <p class="support-body">{{ inquiry.reply }}</p><time>{{ inquiry.repliedAt | date:'medium' }}</time></div>
+              }
+            </div>
+            @if (!inquiry.reply) {
+              <form class="support-compose" (ngSubmit)="replyOffline()">
+                <label for="offlineReply">Reply to customer</label>
+                <textarea id="offlineReply" name="offlineReply" [(ngModel)]="offlineReplyDraft" maxlength="2000" rows="3"
+                  placeholder="Write a helpful reply…" [disabled]="busy()"></textarea>
+                <div class="support-compose-bottom"><small>The customer will see this reply in their offline inquiries.</small>
+                  <button type="submit" [disabled]="busy() || !offlineReplyDraft.trim()">{{ busy() ? 'Saving…' : 'Send reply' }}</button>
+                </div>
+              </form>
+            }
+          } @else {
+            <div class="support-no-thread"><h2>No offline inquiries</h2><p>Customer messages will appear here while live chat is unavailable.</p></div>
+          }
+        </section>
+      </div>
+    } @else {
+      <div class="support-layout" [class.support-layout-manager]="mode() === 'staff'">
+        @if (mode() === 'staff') {
+          <aside class="support-inbox" aria-label="Customer live conversations">
+            <div class="support-inbox-title"><h2>Live conversations</h2><span>{{ inbox().length }}</span></div>
+            @for (c of inbox(); track c.id) {
+              <button type="button" class="support-thread" [class.selected]="selected()?.id === c.id" (click)="choose(c)">
+                <strong>{{ c.customerName }}</strong><small>{{ c.customerEmail }}</small>
+                <span class="support-thread-meta"><span>{{ c.status }}</span><time>{{ c.updatedAt | date:'short' }}</time></span>
+              </button>
+            } @empty { <div class="support-inbox-empty">No conversations yet.</div> }
+          </aside>
+        }
+        <section class="support-chat" aria-label="Support messages">
+          @if (selected(); as conversation) {
+            <header class="support-chat-header"><div>
+              <h2>{{ mode() === 'staff' ? conversation.customerName : conversation.companyName }}</h2>
+              <p>{{ mode() === 'staff' ? conversation.customerEmail : 'Your private conversation with this shop' }}</p></div>
+              <span class="support-status" [class.closed]="conversation.status === 'CLOSED'">{{ conversation.status }}</span>
+            </header>
+            <div #messageList class="support-message-list" role="log" aria-label="Support conversation" aria-live="polite">
+              @for (message of messages(); track message.id) {
+                <div class="support-bubble" [class.mine]="message.senderId === currentUser()?.id">
+                  <p class="support-author">{{ message.senderId === currentUser()?.id ? 'You' : message.senderName }}</p>
+                  <p class="support-body">{{ message.body }}</p>
+                  <time>{{ message.createdAt | date:'medium' }}</time>
+                </div>
+              } @empty { <p class="support-placeholder">No messages in this conversation yet.</p> }
+            </div>
+            @if (availability()?.online && (mode() === 'client' || availableForChat())) {
+              <form class="support-compose" (ngSubmit)="send()">
+                <label for="supportMessage" class="sr-only">Support message</label>
+                <textarea id="supportMessage" name="supportMessage" [(ngModel)]="draft" maxlength="2000" rows="3"
+                  placeholder="Write your live message…" [disabled]="busy()"></textarea>
+                <div class="support-compose-bottom"><small>{{ draft.length }}/2000 · Instant delivery via WebSocket.</small>
+                  <button type="submit" [disabled]="busy() || !draft.trim()">{{ busy() ? 'Sending…' : 'Send message' }}</button></div>
+              </form>
+            } @else {
+              <p class="support-readonly">Live messaging is paused. {{ mode() === 'staff' ? 'Choose “I am available for chat” to answer live.' : 'Send an offline message above and our team will get back to you.' }}</p>
+            }
+            @if (mode() === 'staff' && canClose()) {
+              <div class="support-admin-actions">
+                <button type="button" (click)="setStatus(conversation.status === 'OPEN' ? 'CLOSED' : 'OPEN')" [disabled]="busy()">
+                  {{ conversation.status === 'OPEN' ? 'Close conversation' : 'Reopen conversation' }}
+                </button>
+              </div>
+            }
+          } @else if (mode() === 'client' && availability()?.online) {
+            <div class="support-no-thread"><span class="support-illustration" aria-hidden="true">💬</span>
+              <h2>Talk with the shop</h2><p>A team member is available. Open a private live conversation.</p>
+              <button type="button" (click)="start()" [disabled]="busy()">{{ busy() ? 'Opening…' : 'Start live chat' }}</button>
+            </div>
+          } @else if (mode() === 'staff') {
+            <div class="support-no-thread"><h2>Select a conversation</h2><p>Past conversations remain available even when you are offline.</p></div>
+          } @else {
+            <div class="support-no-thread"><h2>Live chat is offline</h2><p>You can read previous chat messages or submit an offline inquiry above.</p></div>
+          }
+        </section>
+      </div>
+    }
+
+    @if (mode() === 'client') {
+      <section class="support-offline-history" aria-label="My offline inquiries">
+        <div class="support-history-heading"><h2>My offline inquiries</h2><small>{{ offlineMessages().length }} recent messages</small></div>
+        @for (m of offlineMessages(); track m.id) {
+          <article class="offline-history-item">
+            <div class="offline-history-meta"><time>{{ m.createdAt | date:'medium' }}</time>
+              <span [class.answered]="!!m.reply">{{ m.reply ? 'Answered' : 'Awaiting reply' }}</span></div>
+            <p class="support-body">{{ m.body }}</p>
+            @if (m.reply) {
+              <div class="offline-answer"><strong>{{ m.repliedByName }} replied:</strong>
+                <p class="support-body">{{ m.reply }}</p><small>{{ m.repliedAt | date:'medium' }}</small></div>
+            }
+          </article>
+        } @empty { <p class="support-muted">You have not sent any offline inquiries to this shop.</p> }
+      </section>
+    }
+  }
+</section>

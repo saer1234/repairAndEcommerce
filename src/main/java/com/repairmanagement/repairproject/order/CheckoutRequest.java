@@ -13,5 +13,12 @@ public record CheckoutRequest(
     @NotBlank @Size(max=100) String country,
     @Size(max=500) String deliveryNotes,
     @NotNull @DecimalMin("-90.0") @DecimalMax("90.0") BigDecimal latitude,
-    @NotNull @DecimalMin("-180.0") @DecimalMax("180.0") BigDecimal longitude
-) {}
+    @NotNull @DecimalMin("-180.0") @DecimalMax("180.0") BigDecimal longitude,
+    @DecimalMin("0.00") BigDecimal expectedTotal
+) {
+    // Keep existing code/test constructors compatible.
+    public CheckoutRequest(String deliveryPhone, String streetAddress, String city, String postalCode,
+                           String country, String deliveryNotes, BigDecimal latitude, BigDecimal longitude) {
+        this(deliveryPhone, streetAddress, city, postalCode, country, deliveryNotes, latitude, longitude, null);
+    }
+}

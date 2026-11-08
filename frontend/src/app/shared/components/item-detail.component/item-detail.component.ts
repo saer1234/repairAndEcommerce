@@ -15,6 +15,8 @@ export interface ItemDetailsItem {
   compatibleDevices: CompatibleDevice[];
   imageUrl: string | null;
   sellingPrice: number;
+  effectivePrice: number;
+  discountPercent: number;
   currencyCode: string;
   inStock?: boolean;
   stockQuantity?: number;

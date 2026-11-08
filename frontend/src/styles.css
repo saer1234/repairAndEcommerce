@@ -301,3 +301,66 @@ button:focus-visible,a:focus-visible,input:focus-visible,textarea:focus-visible,
 @media(max-width:355px){.mobile-brand strong{font-size:.88rem}.mobile-logout{font-size:.73rem;padding:8px}.mobile-app-bar{gap:7px}}
 @keyframes nav-in{from{transform:translateX(-16px);opacity:.75}to{transform:translateX(0);opacity:1}}
 @media(prefers-reduced-motion:reduce){.mobile-nav-drawer{animation:none}.app-nav a{transition:none}}
+
+
+/* Item discount offers — usable in customer store, item details, and inventory. */
+.offer-price{display:flex;flex-direction:column;align-items:flex-start;gap:3px}
+.offer-badge{display:inline-block;padding:3px 7px;border-radius:7px;background:#e8f7ec;color:#14633b;font-size:.73rem;font-weight:750;margin-right:5px}
+.offer-old-price{color:#7a8798;text-decoration:line-through;font-size:.84rem;margin-right:6px}
+.offer-editor{margin:14px 0;padding:20px;border:1px solid #bcdacf;background:#fbfefc}
+.offer-editor form{display:flex;gap:12px;flex-wrap:wrap;align-items:end}
+.offer-editor label{min-width:175px;max-width:250px}
+.offer-editor .table-actions{display:flex;gap:7px;flex-wrap:wrap}
+
+
+/* === Wolf Tech storefront identity: electric-blue on midnight navy === */
+:root{--wolf-blue:#257eff;--wolf-blue-strong:#165bde;--wolf-navy:#081327;--wolf-line:#d8e3f2}
+button.primary,.button-link.primary{background:linear-gradient(135deg,#2c80fa,#1759d5);box-shadow:0 4px 16px #0d5ee824}
+button.primary:hover,.button-link.primary:hover{filter:brightness(1.08)}
+button:focus-visible,a:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-visible{outline:3px solid #76b6ff;outline-offset:2px}
+.desktop-sidebar,.mobile-nav-drawer{background:radial-gradient(circle at 12% 4%,#173e8b83,transparent 37%),linear-gradient(180deg,#08152e,#060e20)!important}
+.desktop-sidebar .sidebar-brand{border-bottom:1px solid #2870c12d;margin-bottom:7px}
+.brand-symbol{background:transparent!important;box-shadow:none!important;overflow:visible;border-radius:0!important}
+.brand-symbol img{width:100%;height:100%;object-fit:contain;filter:drop-shadow(0 0 11px #398aff8c)}
+.app-nav a.active{background:linear-gradient(95deg,#154a9f,#102b58)!important;border-color:#4a9afb66!important;box-shadow:inset 3px 0 #4b9aff,0 0 17px #1f6ceb18!important}
+.app-nav a:hover{background:#173662!important}
+.sidebar-brand-copy small,.nav-section-title{color:#94b5e6!important}
+.workspace-eyebrow{color:#216ce8!important}
+.workspace-header{border-bottom-color:#d4e1f3}
+.metric,.panel,.product-card{box-shadow:0 8px 24px #193b6a0b;border-color:#dbe5f3}
+.metric{border-top:2px solid #3681ed24}
+.product-card:hover{border-color:#89b8f1;box-shadow:0 10px 30px #0c5ce51c}
+.product-icon{background:#eaf3ff;color:#1e66d2}
+.mobile-app-bar{background:linear-gradient(105deg,#08172f,#0e2a53)!important;border-bottom-color:#235ca3!important;box-shadow:0 8px 28px #0713232b!important}
+.mobile-brand strong{color:#f3f7ff!important}
+.mobile-menu-button{background:#15345d!important;border-color:#2b578b!important;color:#e7f4ff!important}
+.mobile-logout{background:#1b4071!important;color:#fff!important;border-color:#4278b4!important}
+.mobile-logout:hover{background:#23548d!important}
+/* Keep the existing repair/store data views light and legible. */
+.app-shell{background:#f2f6fd}
+/* Login / register take their visual language from the supplied Wolf Tech artwork. */
+.auth-layout{position:relative;isolation:isolate;background:#040e20 url('/assets/wolftech-showcase.jpg') center / cover no-repeat;padding:38px 0}
+.auth-layout::before{content:'';position:absolute;inset:0;background:linear-gradient(120deg,#020817df,#0b1d3bcc 50%,#051023e6);z-index:-1}
+.auth-card{background:#fbfdffed;backdrop-filter:blur(15px);border:1px solid #83b6fa87;box-shadow:0 26px 90px #0009,0 0 60px #1677ed33;border-radius:19px}
+.auth-card .logo img{filter:drop-shadow(0 3px 12px #1856c241)}
+.auth-card .logo p{font-weight:850;letter-spacing:.01em;color:#0c2f65}
+/* Store banner uses the exact supplied graphic and stays unobtrusive to checkout. */
+.wt-store-brand{background:#071226;border:1px solid #244c87;border-radius:16px;overflow:hidden;margin-bottom:27px;box-shadow:0 17px 38px #0e2d5c26}
+.wt-store-brand img{display:block;width:100%;height:auto;aspect-ratio:16 / 7;object-fit:contain;background:#030a1a}
+.wt-store-brand-footer{display:flex;gap:16px;justify-content:space-between;align-items:center;padding:17px 22px;background:linear-gradient(110deg,#0a1a32,#123365);color:#e8f3ff}
+.wt-store-brand-footer>div{display:flex;flex-direction:column;gap:4px}.wt-store-brand-footer span{font-size:.63rem;color:#87b8ff;letter-spacing:.18em;font-weight:850}.wt-store-brand-footer strong{font-size:1.05rem}
+.wt-store-brand-footer a{padding:10px 13px;text-decoration:none;white-space:nowrap;border:1px solid #4785d2;background:#1b55a0;color:white;border-radius:9px;font-weight:750;font-size:.82rem}
+@media(max-width:650px){.wt-store-brand-footer{flex-direction:column;align-items:flex-start;padding:16px;gap:11px}.wt-store-brand-footer a{width:100%;text-align:center}.auth-layout{padding:14px 0}.auth-card{padding:27px 22px}}
+
+.desktop-sidebar .sidebar-brand{color:#fff;text-decoration:none}
+
+/* Auth pages: use the existing transparent wolf emblem, without a white square. */
+.auth-card .auth-wolf-logo {
+  display: block;
+  width: min(128px, 40%);
+  height: auto;
+  max-width: 100%;
+  object-fit: contain;
+  background: transparent;
+  mix-blend-mode: normal;
+}

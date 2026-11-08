@@ -1,5 +1,11 @@
 import { Routes } from '@angular/router';
+import { HomePage } from './pages/home.page/home.page';
+import { AboutPage } from './pages/about.page/about.page';
+import { AboutSettingsPage } from './pages/about-settings.page/about-settings.page';
+import { SupportPage } from './pages/support.page/support.page';
 import { authGuard } from './core/guards/auth-guard';
+import { platformOwnerGuard } from './core/guards/platform-owner-guard';
+import { PlatformUsersPage } from './pages/platform-users.page/platform-users.page';
 import { clientShopGuard } from './core/guards/client-shop-guard';
 import { LoginPage } from './pages/auth/login.page/login.page';
 import { RegisterPage } from './pages/auth/register.page/register.page';
@@ -13,11 +19,15 @@ import { RepairTrackingPage } from './pages/repair-tracking.page/repair-tracking
 import { RepairWorkspacePage } from './pages/repair-workspace.page/repair-workspace.page';
 import { CompaniesPage } from './pages/companies.page/companies.page';
 export const routes:Routes=[
+ {path:'',pathMatch:'full',component:HomePage},
  {path:'login',component:LoginPage},
  {path:'register',component:RegisterPage},
+ {path:'about',component:AboutPage},
  {path:'',component:ShellPage,canActivate:[authGuard],children:[
-   {path:'',pathMatch:'full',redirectTo:'dashboard'},
    {path:'dashboard',component:DashboardPage},
+   {path:'platform-users',component:PlatformUsersPage,canActivate:[platformOwnerGuard]},
+   {path:'support',component:SupportPage},
+   {path:'about-settings',component:AboutSettingsPage},
    {path:'shop',component:ShopPage,canActivate:[clientShopGuard]},
    {path:'orders',component:OrdersPage},
    {path:'inventory',component:InventoryPage},

@@ -1,0 +1,58 @@
+<div class="about-wrap">
+  <header class="about-header">
+    <a routerLink="/" class="about-brand"><img src="assets/wolflog-removebg-preview.png" alt=""/><span>{{ profile()?.companyName || 'Wolf Tech Repair' }}</span></a>
+    <nav aria-label="Page navigation">
+      @if (auth.signedIn()) { <a routerLink="/dashboard">Dashboard</a><a class="about-nav-cta" routerLink="/support">Support</a> }
+      @else { <a routerLink="/login">Sign in</a><a class="about-nav-cta" routerLink="/register">Create account</a> }
+    </nav>
+  </header>
+  <main>
+    <section class="shop-picker" aria-label="Choose a shop">
+      <label for="aboutShop">Company information</label>
+      <select id="aboutShop" [ngModel]="selectedId()" (ngModelChange)="selectCompany($event)">
+        @for (company of companies(); track company.id) { <option [ngValue]="company.id">{{ company.name }}</option> }
+      </select>
+    </section>
+    @if (error()) { <p class="about-error" role="alert">{{ error() }}</p> }
+    @if (loading()) { <p class="about-loading">Loading company information…</p> }
+    @if (profile(); as shop) {
+      <section class="about-hero">
+        <p class="about-eyebrow">ABOUT {{ shop.companyName }}</p>
+        <h1>{{ shop.headline }}</h1>
+        <p>{{ shop.description || 'This shop has not added its description yet.' }}</p>
+        <div class="about-actions">
+          <a class="about-primary" [routerLink]="auth.signedIn() ? '/support' : '/login'">Contact support</a>
+          @if (ownerCanEdit()) { <a class="about-secondary" routerLink="/about-settings">Edit About Us</a> }
+        </div>
+      </section>
+      <section class="about-section">
+        <div class="about-intro"><p class="about-eyebrow">CONTACT & LOCATION</p><h2>Visit or contact {{ shop.companyName }}</h2></div>
+        <div class="about-grid">
+          <article class="about-card"><h3>Store location</h3>
+            <p>{{ shop.storeAddress || 'Address not published yet.' }}</p>
+            @if (shop.mapsUrl) { <a [href]="shop.mapsUrl" target="_blank" rel="noopener noreferrer">View location on map</a> }
+          </article>
+          <article class="about-card"><h3>Contact</h3>
+            @if (shop.contactPhone) { <p><a [href]="'tel:' + shop.contactPhone">{{ shop.contactPhone }}</a></p> }
+            @if (shop.contactEmail) { <p><a [href]="'mailto:' + shop.contactEmail">{{ shop.contactEmail }}</a></p> }
+            @if (!shop.contactPhone && !shop.contactEmail) { <p>Contact details not published yet.</p> }
+          </article>
+          <article class="about-card"><h3>Opening hours</h3><p class="multiline">{{ shop.openingHours || 'Please contact the shop for opening hours.' }}</p></article>
+        </div>
+      </section>
+      <section class="about-contact">
+        <div><p class="about-eyebrow">FOLLOW & CONNECT</p><h2>Social media</h2>
+          <div class="social-links">
+            @if (shop.instagramUrl) { <a [href]="shop.instagramUrl" target="_blank" rel="noopener noreferrer">Instagram</a> }
+            @if (shop.facebookUrl) { <a [href]="shop.facebookUrl" target="_blank" rel="noopener noreferrer">Facebook</a> }
+            @if (shop.tiktokUrl) { <a [href]="shop.tiktokUrl" target="_blank" rel="noopener noreferrer">TikTok</a> }
+            @if (shop.whatsappUrl) { <a [href]="shop.whatsappUrl" target="_blank" rel="noopener noreferrer">WhatsApp</a> }
+            @if (shop.websiteUrl) { <a [href]="shop.websiteUrl" target="_blank" rel="noopener noreferrer">Website</a> }
+            @if (!shop.instagramUrl && !shop.facebookUrl && !shop.tiktokUrl && !shop.whatsappUrl && !shop.websiteUrl) { <p>No social profiles published yet.</p> }
+          </div>
+        </div>
+      </section>
+    } @else if (!loading() && !error()) { <p class="about-loading">No shop has been selected.</p> }
+  </main>
+  <footer class="about-footer">Wolf Tech Repair · <a routerLink="/">Back to application</a></footer>
+</div>

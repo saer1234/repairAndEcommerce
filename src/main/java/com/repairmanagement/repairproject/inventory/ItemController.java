@@ -17,10 +17,24 @@ public class ItemController {
     private final ItemService service;
     private final ItemImageService images;
     private final InventoryBulkImportService imports;
-    public ItemController(ItemService service, ItemImageService images, InventoryBulkImportService imports) {
+    private final ItemOfferService offers;
+    public ItemController(ItemService service, ItemImageService images, InventoryBulkImportService imports,
+                          ItemOfferService offers) {
         this.service = service;
         this.images = images;
         this.imports = imports;
+        this.offers = offers;
+    }
+
+    @PutMapping("/{itemId}/offer")
+    public ManagerItemView setOffer(@PathVariable Long companyId, @PathVariable Long itemId,
+                                    @Valid @RequestBody SetItemOfferRequest request, Principal principal) {
+        return offers.set(companyId, itemId, request, principal.getName());
+    }
+
+    @DeleteMapping("/{itemId}/offer")
+    public ManagerItemView removeOffer(@PathVariable Long companyId, @PathVariable Long itemId, Principal principal) {
+        return offers.remove(companyId, itemId, principal.getName());
     }
 
     @GetMapping

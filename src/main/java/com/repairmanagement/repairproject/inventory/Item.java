@@ -49,6 +49,34 @@ public class Item {
     @Column(name = "selling_price", nullable = false, precision = 12, scale = 2)
     private BigDecimal sellingPrice;
 
+    @OneToOne(mappedBy = "item", cascade = CascadeType.ALL, orphanRemoval = true)
+    private ItemOffer offer;
+
+    /** List price never changes when an offer is configured. */
+    public int getDiscountPercent() { return offer == null ? 0 : offer.getDiscountPercent(); }
+
+    public BigDecimal getEffectiveSellingPrice() {
+        if (offer == null) return sellingPrice;
+        return sellingPrice.multiply(BigDecimal.valueOf(100 - offer.getDiscountPercent()))
+            .divide(BigDecimal.valueOf(100), 2, java.math.RoundingMode.HALF_UP);
+    }
+
+    public void setDiscountPercent(int discountPercent) {
+        if (discountPercent < 1 || discountPercent > 90) {
+            throw new IllegalArgumentException("Discount must be between 1% and 90%");
+        }
+        if (sellingPrice == null || sellingPrice.signum() <= 0) {
+            throw new IllegalStateException("A positive list price is required to set an offer");
+        }
+        if (offer == null) offer = new ItemOffer(this, discountPercent);
+        else offer.setDiscountPercent(discountPercent);
+        if (getEffectiveSellingPrice().signum() <= 0) {
+            throw new IllegalArgumentException("Discounted price must be greater than zero");
+        }
+    }
+
+    public void clearOffer() { offer = null; }
+
     @Column(name = "stock_quantity", nullable = false)
     private int stockQuantity;
 

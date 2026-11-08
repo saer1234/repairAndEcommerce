@@ -88,7 +88,7 @@ public class InventoryService {
             units += item.getStockQuantity();
             BigDecimal quantity = BigDecimal.valueOf(item.getStockQuantity());
             totalCost = totalCost.add(item.getCostPrice().multiply(quantity));
-            totalSales = totalSales.add(item.getSellingPrice().multiply(quantity));
+            totalSales = totalSales.add(item.getEffectiveSellingPrice().multiply(quantity));
         }
         return new InventorySummaryView(companyId, company.getCurrencyCode(), activeItems, units,
             totalCost, totalSales, totalSales.subtract(totalCost));

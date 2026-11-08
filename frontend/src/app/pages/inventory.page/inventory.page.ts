@@ -31,6 +31,8 @@ interface ManagedItem {
   compatibleDevices: CompatibleDevice[];
   costPrice: number;
   sellingPrice: number;
+  effectivePrice: number;
+  discountPercent: number;
   currencyCode: string;
   potentialGrossProfitPerUnit: number;
   stockQuantity: number;
@@ -69,6 +71,43 @@ export class InventoryPage {
   private readonly api = inject(Api);
   readonly items = signal<ManagedItem[]>([]);
   readonly selectedItem = signal<ManagedItem | null>(null);
+  readonly offerEditing = signal<ManagedItem | null>(null);
+  readonly savingOffer = signal(false);
+  offerPercent: number | null = 10;
+
+  beginOffer(item: ManagedItem): void {
+    this.offerEditing.set(item);
+    this.offerPercent = item.discountPercent || 10;
+    this.error.set(''); this.message.set('');
+  }
+  cancelOffer(): void { this.offerEditing.set(null); }
+  validOffer(): boolean {
+    return typeof this.offerPercent === 'number' && Number.isInteger(this.offerPercent)
+      && this.offerPercent >= 1 && this.offerPercent <= 90;
+  }
+  saveOffer(): void {
+    const companyId = this.ctx.managedSelected(), item = this.offerEditing();
+    if (!companyId || !item || !this.canManage() || !this.validOffer() || this.savingOffer()) return;
+    this.savingOffer.set(true); this.error.set('');
+    this.api.put<ManagedItem>(`/companies/${companyId}/items/${item.id}/offer`,
+      {discountPercent: this.offerPercent}).subscribe({
+      next: updated => { this.savingOffer.set(false); this.offerEditing.set(null);
+        this.message.set(`${updated.discountPercent}% offer saved for ${updated.name}.`); this.load(companyId); },
+      error: err => { this.savingOffer.set(false);
+        this.error.set(this.explain(err, 'Could not save item offer.')); }
+    });
+  }
+  removeOffer(item: ManagedItem): void {
+    const companyId = this.ctx.managedSelected();
+    if (!companyId || !this.canManage() || this.savingOffer()) return;
+    this.savingOffer.set(true); this.error.set('');
+    this.api.delete<ManagedItem>(`/companies/${companyId}/items/${item.id}/offer`).subscribe({
+      next: () => { this.savingOffer.set(false); this.offerEditing.set(null);
+        this.message.set(`Offer removed from ${item.name}.`); this.load(companyId); },
+      error: err => { this.savingOffer.set(false);
+        this.error.set(this.explain(err, 'Could not remove item offer.')); }
+    });
+  }
   private detailTrigger: HTMLElement | null = null;
   openDetails(item:ManagedItem):void { this.detailTrigger=document.activeElement instanceof HTMLElement?document.activeElement:null;this.selectedItem.set(item); }
   closeDetails():void { this.selectedItem.set(null);this.detailTrigger?.focus();this.detailTrigger=null; }
@@ -205,7 +244,7 @@ export class InventoryPage {
       const role = this.ctx.role();
       untracked(() => {
         this.clearForm();
-        this.restocking.set(null);
+        this.restocking.set(null); this.offerEditing.set(null);
         this.bulkFile=null;this.bulkFileName.set('');this.bulkPreview.set(null);this.bulkError.set('');this.resetPage();
         this.items.set([]);this.selectedItem.set(null);
         if (companyId && (role === 'OWNER' || role === 'MANAGER')) this.load(companyId);

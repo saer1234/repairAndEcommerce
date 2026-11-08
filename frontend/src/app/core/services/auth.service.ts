@@ -1,4 +1,4 @@
-import { inject, Service, signal } from '@angular/core';
+import { inject, Injectable, signal } from '@angular/core';
 import { Router } from '@angular/router';
 import { tap } from 'rxjs';
 import { Api } from '../../api';
@@ -32,7 +32,7 @@ function restoreSession(): StoredSession | null {
   }
 }
 
-@Service()
+@Injectable({providedIn: 'root'})
 export class AuthService {
 
      private readonly api = inject(Api);

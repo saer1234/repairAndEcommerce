@@ -1,0 +1,31 @@
+
+:host{display:block;min-height:100vh;background:#f5f7fb;color:#122842;font-family:Inter,system-ui,sans-serif}
+.about-wrap{max-width:1160px;margin:auto;padding:0 28px}.about-header{min-height:83px;display:flex;align-items:center;justify-content:space-between;gap:18px;border-bottom:1px solid #dee6f0}
+.about-header nav{display:flex;align-items:center;gap:16px}.about-header nav a{font-size:14px;text-decoration:none;font-weight:700;color:#174067}
+.about-header nav .about-nav-cta{background:#163d72;color:#fff;padding:11px 16px;border-radius:11px}
+.about-brand{display:flex;align-items:center;gap:9px;text-decoration:none;color:#15385c;font-size:18px;font-weight:800}.about-brand img{width:47px;height:47px;object-fit:contain}
+.about-hero{padding:86px 0 92px;max-width:790px}.about-eyebrow{color:#2469af;font-weight:800;font-size:12px;letter-spacing:.16em;margin-bottom:15px}
+.about-hero h1{font-size:clamp(36px,5.7vw,66px);letter-spacing:-.045em;line-height:1.08;margin:0 0 27px}.about-hero>p:not(.about-eyebrow){font-size:18px;line-height:1.7;color:#53667e;max-width:690px}
+.about-actions{display:flex;gap:11px;flex-wrap:wrap;margin-top:29px}.about-primary,.about-secondary{display:inline-flex;justify-content:center;align-items:center;text-decoration:none;border-radius:12px;padding:13px 20px;font-weight:750}
+.about-primary{background:#1855a1;color:#fff}.about-secondary{background:#e4edf8;color:#194576}.about-section{padding-bottom:77px}.about-intro h2,.about-contact h2{font-size:clamp(25px,3vw,38px);line-height:1.18;letter-spacing:-.03em}
+.about-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:17px;margin-top:30px}.about-card{background:#fff;border:1px solid #e1e8f0;border-radius:16px;padding:27px;box-shadow:0 4px 20px #2645680a}
+.about-card-icon{display:grid;place-items:center;width:44px;height:44px;border-radius:12px;background:#eaf2ff;font-weight:850;color:#2460a2;margin-bottom:23px}.about-card h3{margin:0 0 10px;font-size:19px}.about-card p,.about-contact p:not(.about-eyebrow){line-height:1.65;color:#61738b;margin-bottom:0}
+.about-contact{background:linear-gradient(120deg,#e2edfb,#f3f7fc);border:1px solid #cfdeee;border-radius:19px;padding:38px;display:flex;align-items:center;justify-content:space-between;gap:40px}.about-contact>div{max-width:610px}.about-contact h2{margin:0 0 12px}.about-contact .about-primary{white-space:nowrap}
+.about-footer{padding:35px 0;margin-top:25px;border-top:1px solid #dfe6ef;font-size:13px;color:#687a90}.about-footer a{color:#295a99}
+@media(max-width:730px){.about-wrap{padding:0 17px}.about-header{min-height:70px}.about-brand span{font-size:15px}.about-header nav{gap:8px}.about-header nav a{font-size:12px}.about-header nav .about-nav-cta{padding:9px}.about-hero{padding:54px 0}.about-grid{grid-template-columns:1fr}.about-contact{flex-direction:column;align-items:flex-start;padding:25px}.about-hero>p:not(.about-eyebrow){font-size:16px}}
+
+.shop-picker{padding-top:28px;display:flex;align-items:center;gap:16px;flex-wrap:wrap}.shop-picker label{font-weight:750}.shop-picker select{min-width:220px;max-width:100%;padding:11px 14px;border:1px solid #c6d3e2;border-radius:10px;background:#fff;color:#173957}
+.about-error{color:#a02126}.about-loading{padding:64px 0;color:#58718c}.multiline{white-space:pre-line}
+.about-card a,.social-links a{color:#1855a1;font-weight:700;overflow-wrap:anywhere}.social-links{display:flex;gap:12px;flex-wrap:wrap;margin-top:20px}.social-links a{background:white;border-radius:10px;padding:12px 16px;text-decoration:none;border:1px solid #c6d3e2}
+@media(max-width:730px){.shop-picker{align-items:stretch;flex-direction:column}.shop-picker select{width:100%}}
+
+/* Wolf Tech visual identity (the About content remains driven by company data). */
+:host{background:radial-gradient(circle at 75% 0%,#173d77,transparent 43%),#070f20;color:#edf4ff}
+.about-header{border-bottom-color:#31518a8a}.about-brand,.about-header nav a{color:#eaf4ff}.about-header nav .about-nav-cta{background:linear-gradient(135deg,#257aff,#1550b5);box-shadow:0 7px 22px #105ce555}
+.about-hero{max-width:920px}.about-hero h1{color:#fff;text-shadow:0 0 32px #2174d14f}.about-hero>p:not(.about-eyebrow){color:#b0bfdb}
+.about-eyebrow{color:#72b6ff}.about-primary{background:linear-gradient(135deg,#2c88ff,#1552c6);box-shadow:0 6px 24px #176ee04b}.about-secondary{background:#18375d;border:1px solid #315a8f;color:#e7f3ff}
+.about-card{background:linear-gradient(140deg,#142541,#0e1c34);border-color:#2d5182;box-shadow:0 12px 40px #0005}.about-card h3{color:#eef6ff}.about-card p,.about-contact p:not(.about-eyebrow){color:#b1bfd7}.about-card a,.social-links a{color:#85bbff}
+.about-contact{background:radial-gradient(circle at 90% 15%,#2867bc7c,transparent 43%),linear-gradient(125deg,#102644,#0c1c39);border-color:#3863a1}.about-contact h2,.about-intro h2{color:white}
+.about-footer{border-top-color:#2a4267;color:#89a2c5}.about-footer a{color:#9dc6ff}
+.social-links a{background:#112747;border-color:#2b5587;color:#d7e9ff}.social-links a:hover{background:#1c3d6c}
+.shop-picker label{color:#dcecff}.shop-picker select{background:#132944;border-color:#366194;color:#fff}.about-loading{color:#abc4e0}

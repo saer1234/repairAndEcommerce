@@ -68,7 +68,12 @@ public class OrderService {
                     "One or more cart items are unavailable or out of stock");
             }
             locked.add(item);
-            total = total.add(item.getSellingPrice().multiply(BigDecimal.valueOf(cartLine.getQuantity())));
+            total = total.add(item.getEffectiveSellingPrice().multiply(BigDecimal.valueOf(cartLine.getQuantity())));
+        }
+        // If the offer changed after the cart preview, ask the customer to review the new total.
+        if (delivery.expectedTotal() != null && delivery.expectedTotal().compareTo(total) != 0) {
+            throw new ResponseStatusException(HttpStatus.CONFLICT,
+                "Cart prices changed. Refresh the cart and confirm the latest total before ordering");
         }
         CustomerOrder order = new CustomerOrder(company, customer,
             "ORD-" + UUID.randomUUID().toString().toUpperCase(), total);
@@ -78,7 +83,7 @@ public class OrderService {
         for (int idx = 0; idx < sorted.size(); idx++) {
             CartItem cartLine = sorted.get(idx);
             Item item = locked.get(idx);
-            OrderItem line = new OrderItem(order, item, cartLine.getQuantity());
+            OrderItem line = new OrderItem(order, item, cartLine.getQuantity(), item.getEffectiveSellingPrice());
             completedLines.add(line);
             item.setStockQuantity(item.getStockQuantity() - cartLine.getQuantity());
             stockMovements.save(new StockMovement(item, customer, MovementType.SALE,

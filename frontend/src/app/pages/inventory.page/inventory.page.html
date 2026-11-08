@@ -244,7 +244,8 @@
                     </td>
                     <td>{{ item.stockQuantity }}</td>
                     <td>{{ item.costPrice | number:'1.2-2' }}</td>
-                    <td>{{ item.sellingPrice | number:'1.2-2' }}</td>
+                    <td>@if(item.discountPercent){<span class="offer-old-price">{{ item.sellingPrice | number:'1.2-2' }}</span><span class="offer-badge">-{{item.discountPercent}}%</span>}
+                        <strong>{{ item.effectivePrice | number:'1.2-2' }}</strong></td>
                     <td>{{ item.potentialGrossProfitPerUnit | number:'1.2-2' }}</td>
                     <td>
                       @if (item.active) {
@@ -252,6 +253,7 @@
                           <button class="secondary" type="button" (click)="openDetails(item)">Details</button>
                           <button class="secondary" type="button" (click)="edit(item)">Edit</button>
                           <button class="secondary" type="button" (click)="beginRestock(item)">Restock</button>
+                          <button class="secondary" type="button" (click)="beginOffer(item)">{{item.discountPercent?'Edit offer':'Set offer'}}</button>
                           <button class="secondary" type="button" [disabled]="busyItemId()!==null" (click)="changeVisibility(item)">{{item.visibleToClients?'Hide from clients':'Show to clients'}}</button>
                           <button class="secondary" type="button" [disabled]="busyItemId()!==null" (click)="deleteItem(item)">Delete</button>
                         </div>
@@ -276,7 +278,7 @@
                   </div>
                   <div class="inventory-mobile-stats">
                     <span>Stock <strong>{{item.stockQuantity}}</strong></span>
-                    <span>Sale <strong>{{item.sellingPrice | number:'1.2-2'}} {{item.currencyCode}}</strong></span>
+                    <span>Sale <strong>@if(item.discountPercent){<small class="offer-old-price">{{item.sellingPrice | number:'1.2-2'}}</small> <small class="offer-badge">-{{item.discountPercent}}%</small>} {{item.effectivePrice | number:'1.2-2'}} {{item.currencyCode}}</strong></span>
                     <span>Cost <strong>{{item.costPrice | number:'1.2-2'}} {{item.currencyCode}}</strong></span>
                   </div>
                   @if(item.active){
@@ -284,6 +286,7 @@
                       <button type="button" class="secondary" (click)="openDetails(item)">Details</button>
                       <button type="button" class="secondary" (click)="edit(item)">Edit</button>
                       <button type="button" class="secondary" (click)="beginRestock(item)">Restock</button>
+                      <button type="button" class="secondary" (click)="beginOffer(item)">{{item.discountPercent?'Edit offer':'Set offer'}}</button>
                       <button type="button" class="secondary" [disabled]="busyItemId()!==null" (click)="changeVisibility(item)">{{item.visibleToClients?'Hide':'Show'}}</button>
                       <button type="button" class="secondary" [disabled]="busyItemId()!==null" (click)="deleteItem(item)">Delete</button>
                     </div>
@@ -296,6 +299,22 @@
           }
           @if (selectedItem(); as item) {
             <app-item-detail [item]="item" [showInternal]="true" (close)="closeDetails()" />
+          }
+          @if (offerEditing(); as item) {
+            <section class="offer-editor panel" aria-label="Manage item offer">
+              <h3>Offer for {{item.name}}</h3>
+              <p class="muted tiny">The list price stays {{item.sellingPrice | number:'1.2-2'}} {{item.currencyCode}}. The server applies discounts to the cart and checkout.</p>
+              <form #offerForm="ngForm" (ngSubmit)="saveOffer()">
+                <label>Discount percentage (1–90%)
+                  <input type="number" name="discountPercent" [(ngModel)]="offerPercent" required min="1" max="90" step="1" />
+                </label>
+                <div class="table-actions">
+                  <button type="submit" class="primary" [disabled]="!validOffer() || savingOffer()">{{savingOffer()?'Saving…':'Save offer'}}</button>
+                  @if(item.discountPercent){<button type="button" class="secondary" [disabled]="savingOffer()" (click)="removeOffer(item)">Remove offer</button>}
+                  <button type="button" class="secondary" (click)="cancelOffer()">Cancel</button>
+                </div>
+              </form>
+            </section>
           }
           @if (restocking(); as item) {
             <div class="restock-editor">

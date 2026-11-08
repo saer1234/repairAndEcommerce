@@ -1,3 +1,10 @@
+<section class="wt-store-brand" aria-label="Wolf Tech Repair showcase">
+  <img src="assets/wolftech-showcase.jpg" alt="Wolf Tech Repair phone repairs and mobile accessories" width="1600" height="700" loading="lazy" />
+  <div class="wt-store-brand-footer">
+    <div><span>WOLF TECH REPAIR</span><strong>Find the right accessories for your device.</strong></div>
+    <a routerLink="/repairs">Need a repair? <span aria-hidden="true">↗</span></a>
+  </div>
+</section>
 <section class="page-heading"><div><h1>Customer store</h1><p class="muted">Set quantities, confirm the delivery address and drop a location pin before ordering.</p></div>
 <div class="table-actions"><a routerLink="/orders" class="button-link secondary">My orders & invoices</a><button type="button" (click)="refresh()" class="secondary">Refresh</button></div></section>
 @if(message()){<p class="success" role="status">{{message()}}</p>}
@@ -74,7 +81,8 @@
    @for(fit of item.compatibleDevices;track $index){<span class="fit-chip">{{fit.deviceBrand}} {{fit.deviceModel}}</span>}
  </div>} @else {<p class="muted tiny">Compatibility not yet verified</p>}<h3>{{item.name}}</h3><p class="muted tiny">{{item.sku}}</p><p class="muted item-description-teaser">{{item.description || 'No description added yet.'}}</p>
  <button type="button" class="secondary item-detail-button" (click)="openDetails(item)" [attr.aria-label]="'View details of '+item.name">View full description</button>
- <div class="product-bottom"><strong>{{item.sellingPrice | number:'1.2-2'}} {{item.currencyCode}}</strong><button type="button" class="secondary" [disabled]="!item.inStock" (click)="add(item)">{{item.inStock?'Add to cart':'Out of stock'}}</button></div>
+ <div class="product-bottom"><div class="offer-price">@if(item.discountPercent){<span class="offer-badge">-{{item.discountPercent}}% OFF</span><span class="offer-old-price">{{item.sellingPrice | number:'1.2-2'}} {{item.currencyCode}}</span>}
+    <strong>{{item.effectivePrice | number:'1.2-2'}} {{item.currencyCode}}</strong></div><button type="button" class="secondary" [disabled]="!item.inStock" (click)="add(item)">{{item.inStock?'Add to cart':'Out of stock'}}</button></div>
  </article>}
 </div>
 } @else {
@@ -83,7 +91,8 @@
  <td><div class="inventory-item-name">@if(item.imageUrl){<img class="item-thumbnail" [src]="imageSrc(item.imageUrl)" [alt]="item.name" loading="lazy" />}<div><strong>{{item.name}}</strong><p class="muted tiny">{{item.sku}}</p></div></div></td>
  <td>{{item.deviceType}} / {{item.deviceBrand}} · {{itemCategory(item)}}
  @if(fitActive() && itemVerified(item)){<span class="verified-fit-label">✓ Exact fit recorded</span>}</td>
- <td>{{item.sellingPrice | number:'1.2-2'}} {{item.currencyCode}}</td>
+ <td>@if(item.discountPercent){<span class="offer-badge">-{{item.discountPercent}}%</span><span class="offer-old-price">{{item.sellingPrice | number:'1.2-2'}}</span>}
+  <strong>{{item.effectivePrice | number:'1.2-2'}} {{item.currencyCode}}</strong></td>
  <td>{{item.inStock?'Available':'Out of stock'}}</td>
  <td><div class="table-actions"><button type="button" class="secondary" (click)="openDetails(item)">Details</button><button type="button" class="secondary" [disabled]="!item.inStock" (click)="add(item)">Add to cart</button></div></td>
  </tr>}</tbody></table></div>
@@ -96,7 +105,7 @@
 <section class="panel"><h3>Review your cart</h3>
 @if(cart();as c){
  @for(line of c.items;track line.itemId){<div class="cart-line checkout-cart-line">
- <div><strong>{{line.name}}</strong><div class="muted tiny">{{line.unitSellingPrice | number:'1.2-2'}} {{c.currencyCode}} each</div></div>
+ <div><strong>{{line.name}}</strong><div class="muted tiny">@if(line.discountPercent){<span class="offer-badge">-{{line.discountPercent}}%</span> <span class="offer-old-price">{{line.originalUnitPrice | number:'1.2-2'}}</span>} {{line.unitSellingPrice | number:'1.2-2'}} {{c.currencyCode}} each</div></div>
  <label class="qty-control">Quantity
  <input type="number" min="1" max="100000" step="1" [ngModel]="quantityDraft[line.itemId] ?? line.quantity" (ngModelChange)="quantityDraft[line.itemId]=$event" [attr.aria-label]="'Quantity for '+line.name" />
  </label><button type="button" class="secondary" [disabled]="busy()" (click)="updateQuantity(line.itemId)">Update</button>

@@ -1,0 +1,23 @@
+.users-heading{display:flex;align-items:center;justify-content:space-between;gap:18px;flex-wrap:wrap;margin-bottom:22px}
+.users-heading h1{margin:3px 0 8px;color:#102b52}
+.users-overline{font-size:.73rem;font-weight:800;letter-spacing:.16em;color:#276ad6;margin:0}
+.users-total{background:#e8f2ff;color:#114c9e;font-weight:750;padding:10px 16px;border-radius:99px}
+.users-panel{background:#fff;border:1px solid #dce7f4;border-radius:18px;padding:22px;box-shadow:0 14px 36px #1427470d}
+.users-filters{display:flex;align-items:end;gap:12px;flex-wrap:wrap;margin-bottom:22px}
+.users-filters label{flex:1 1 220px;display:flex;flex-direction:column;gap:6px;font-size:.82rem;font-weight:700;color:#183b64}
+.users-filters label.users-size{flex:0 0 145px;margin-left:auto}
+.users-filters input,.users-filters select{width:100%;min-height:43px;border:1px solid #c9d7e9;border-radius:9px;padding:9px;background:#fff;color:#152c4b}
+.users-filters button{min-height:43px}
+.users-table-scroll{overflow:auto}
+.users-table{width:100%;border-collapse:collapse;min-width:680px;text-align:left}
+.users-table th{background:#eff5fd;color:#31577c;font-size:.75rem;text-transform:uppercase;letter-spacing:.04em}
+.users-table th,.users-table td{padding:12px 13px;border-bottom:1px solid #e7edf5;vertical-align:middle}
+.users-table td small{display:block;color:#6c7d92;margin-top:3px;overflow-wrap:anywhere}
+.users-id{font-weight:750;color:#416c9f}
+.users-role{display:inline-block;border-radius:8px;background:#f0f3f9;padding:5px 9px;font-size:.79rem;font-weight:750}
+.users-status{font-size:.79rem;font-weight:750;color:#087647}
+.users-status.users-inactive{color:#ad3e3e}
+.users-pager{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;margin-top:19px}
+.users-pager>div{display:flex;gap:8px}
+.users-empty{padding:25px;text-align:center;color:#667c94}
+@media(max-width:650px){.users-panel{padding:14px}.users-filters{align-items:stretch}.users-filters label,.users-filters label.users-size{flex:1 1 100%;margin:0}.users-filters button{flex:1 1 44%}.users-heading h1{font-size:1.5rem}}

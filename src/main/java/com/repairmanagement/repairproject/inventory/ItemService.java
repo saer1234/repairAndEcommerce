@@ -71,6 +71,12 @@ public class ItemService {
         if (items.existsByCompany_IdAndSkuIgnoreCaseAndIdNot(companyId, sku, itemId)) {
             throw new ResponseStatusException(HttpStatus.CONFLICT, "SKU already used by this company");
         }
+        if (item.getDiscountPercent() > 0 &&
+            request.sellingPrice().multiply(java.math.BigDecimal.valueOf(100 - item.getDiscountPercent()))
+                .divide(java.math.BigDecimal.valueOf(100), 2, java.math.RoundingMode.HALF_UP).signum() <= 0) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
+                "Remove or adjust the offer before setting a list price that makes the offer price zero");
+        }
         item.updateDetails(sku, request.name().trim(), request.description(),
             request.costPrice(), request.sellingPrice());
         item.setCategory(request.category());

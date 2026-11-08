@@ -1,9 +1,9 @@
-import { inject, Service, signal } from '@angular/core';
+import { inject, Injectable, signal } from '@angular/core';
 import { forkJoin } from 'rxjs';
 import { Api } from '../../api';
 import { Company } from '../models/model';
 
-@Service()
+@Injectable({providedIn: 'root'})
 export class CompanyContext {
     private readonly api = inject(Api);
   // All public companies, regardless of the account's company memberships.

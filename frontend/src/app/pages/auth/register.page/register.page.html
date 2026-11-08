@@ -1,7 +1,7 @@
 <main class="auth-layout"><section class="auth-card">
   <div class="logo">
     <div style="justify-content:center;display:flex;width:100%;">
-        <img style="width:40%;height:auto" src="assets/wolflog.jfif"/>
+        <img class="auth-wolf-logo" src="assets/wolflog-removebg-preview.png" alt="Wolf Tech Repair logo"/>
       
     </div>
     <p style="text-align:center;width:100%;">Create Account</p>
@@ -20,4 +20,4 @@
 <label>Phone (optional) <input name="phone" [(ngModel)]="phone" /></label>
 @if(error()){<p class="error" role="alert">{{error()}}</p>}
 <button class="primary" [disabled]="busy()">{{busy()?'Registering…':'Create account'}}</button></form>
-<p class="muted">Already registered? <a routerLink="/login">Sign in</a></p></section></main>
+<p class="muted">Already registered? <a routerLink="/login">Sign in</a></p><p class="muted"><a routerLink="/about">About Wolf Tech Repair</a></p><p class="muted"><a routerLink="/">← Back to home</a></p></section></main>

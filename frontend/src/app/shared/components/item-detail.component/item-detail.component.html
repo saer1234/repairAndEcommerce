@@ -35,8 +35,10 @@
               <p class="muted">No verified compatibility recorded.</p>
             }
             <div class="item-detail-price">
-              <span>Selling price</span>
-              <strong>{{ item.sellingPrice | number:'1.2-2' }} {{ item.currencyCode }}</strong>
+              <span>{{ item.discountPercent ? 'Offer price' : 'Selling price' }}</span>
+              <div class="offer-price">@if(item.discountPercent){<span class="offer-badge">-{{item.discountPercent}}% OFF</span><span class="offer-old-price">{{item.sellingPrice | number:'1.2-2'}} {{item.currencyCode}}</span>}
+                <strong>{{ item.effectivePrice | number:'1.2-2' }} {{ item.currencyCode }}</strong>
+              </div>
             </div>
             @if (showInternal) {
               <div class="item-detail-internal" aria-label="Internal inventory information">

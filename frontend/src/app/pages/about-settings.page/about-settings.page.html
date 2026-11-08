@@ -1,0 +1,30 @@
+<section class="about-editor">
+  <header><p class="editor-label">COMPANY SETTINGS</p><h1>Edit About Us</h1>
+    <p>Update the public information for your selected company. Changes appear on the About Us page immediately.</p>
+  </header>
+  @if (!ctx.loaded()) { <p>Loading company access…</p> }
+  @else if (!companyId()) { <p>Select a company from the workspace selector.</p> }
+  @else if (!canEdit()) { <p class="error">Only an owner of the selected company may publish its About Us details.</p> }
+  @else {
+    @if (error()) { <p role="alert" class="error">{{ error() }}</p> }
+    @if (success()) { <p role="status" class="success">{{ success() }}</p> }
+    <form (ngSubmit)="save()">
+      <div class="fields">
+        <label>Headline <input name="headline" [(ngModel)]="about.headline" maxlength="180" placeholder="About our repair shop"/></label>
+        <label class="wide">Company description <textarea name="description" [(ngModel)]="about.description" maxlength="3000" rows="5" placeholder="Describe your shop and services"></textarea></label>
+        <label class="wide">Store address <input name="storeAddress" [(ngModel)]="about.storeAddress" maxlength="255" placeholder="Street, building, city, country"/></label>
+        <label>Phone number <input name="phone" type="tel" [(ngModel)]="about.contactPhone" maxlength="40"/></label>
+        <label>Contact email <input name="email" type="email" [(ngModel)]="about.contactEmail" maxlength="190"/></label>
+        <label class="wide">Google Maps / location URL <input name="maps" type="url" [(ngModel)]="about.mapsUrl" maxlength="500" placeholder="https://maps.google.com/..."/></label>
+        <label>Instagram <input name="instagram" type="url" [(ngModel)]="about.instagramUrl" maxlength="500" placeholder="https://instagram.com/..."/></label>
+        <label>Facebook <input name="facebook" type="url" [(ngModel)]="about.facebookUrl" maxlength="500" placeholder="https://facebook.com/..."/></label>
+        <label>TikTok <input name="tiktok" type="url" [(ngModel)]="about.tiktokUrl" maxlength="500" placeholder="https://tiktok.com/..."/></label>
+        <label>WhatsApp link <input name="whatsapp" type="url" [(ngModel)]="about.whatsappUrl" maxlength="500" placeholder="https://wa.me/..."/></label>
+        <label class="wide">Company website <input name="website" type="url" [(ngModel)]="about.websiteUrl" maxlength="500" placeholder="https://example.com"/></label>
+        <label class="wide">Opening hours <textarea name="hours" [(ngModel)]="about.openingHours" rows="3" maxlength="500" placeholder="Monday–Friday: 9:00–18:00"></textarea></label>
+      </div>
+      <div class="actions"><button type="submit" [disabled]="busy()">{{ busy() ? 'Saving…' : 'Save and publish' }}</button>
+        <a [routerLink]="'/about'" [queryParams]="{companyId: companyId()}">Preview public page</a></div>
+    </form>
+  }
+</section>

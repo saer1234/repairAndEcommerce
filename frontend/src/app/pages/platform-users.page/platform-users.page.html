@@ -1,0 +1,62 @@
+<section class="users-heading">
+  <div>
+    <p class="users-overline">PLATFORM ADMINISTRATION</p>
+    <h1>All registered users</h1>
+    <p class="muted">Website accounts across all companies. Read-only access for the platform owner.</p>
+  </div>
+  <span class="users-total">{{ totalUsers() }} accounts</span>
+</section>
+
+<section class="users-panel" aria-label="Search registered users">
+  <form class="users-filters" (ngSubmit)="find()">
+    <label for="platformUserSearch">Find users by name or email
+      <input id="platformUserSearch" type="search" name="search" [(ngModel)]="search"
+             maxlength="100" placeholder="Search name or email" autocomplete="off" />
+    </label>
+    <button class="primary" type="submit" [disabled]="loading()">Search</button>
+    <button class="secondary" type="button" [disabled]="loading()"
+            (click)="search=''; find()">Clear</button>
+    <label class="users-size" for="usersPageSize">Rows per page
+      <select id="usersPageSize" name="pageSize" [ngModel]="pageSize()"
+              (ngModelChange)="changePageSize($event)">
+        <option [ngValue]="10">10</option>
+        <option [ngValue]="20">20</option>
+        <option [ngValue]="50">50</option>
+      </select>
+    </label>
+  </form>
+  @if (error()) { <p class="error" role="alert">{{ error() }}</p> }
+  @if (loading()) { <p class="muted" role="status">Loading users…</p> }
+  @if (!loading() && !error()) {
+    @if (users().length) {
+      <div class="users-table-scroll">
+        <table class="users-table">
+          <thead><tr><th>ID</th><th>User</th><th>Phone</th><th>Account type</th><th>Status</th><th>Registered</th></tr></thead>
+          <tbody>
+            @for (user of users(); track user.id) {
+              <tr>
+                <td class="users-id">#{{ user.id }}</td>
+                <td><strong>{{ user.fullName }}</strong><small>{{ user.email }}</small></td>
+                <td>{{ user.phone || '—' }}</td>
+                <td><span class="users-role">{{ user.platformRole }}</span></td>
+                <td><span class="users-status" [class.users-inactive]="!user.active">
+                  {{ user.active ? 'Active' : 'Inactive' }}
+                </span></td>
+                <td>{{ user.createdAt ? (user.createdAt | date:'mediumDate':'UTC') : '—' }}</td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    } @else {
+      <div class="users-empty">No users match this search.</div>
+    }
+    <footer class="users-pager">
+      <p class="muted">Page {{ page() + 1 }} of {{ totalPages() || 1 }} · {{ totalUsers() }} total</p>
+      <div>
+        <button type="button" class="secondary" [disabled]="page() === 0 || loading()" (click)="load(page()-1)">Previous</button>
+        <button type="button" class="secondary" [disabled]="page()+1 >= totalPages() || loading()" (click)="load(page()+1)">Next</button>
+      </div>
+    </footer>
+  }
+</section>
