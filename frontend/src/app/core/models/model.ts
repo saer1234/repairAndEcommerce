@@ -8,8 +8,13 @@ export interface DeliveryAddress {
  phone:string; streetAddress:string; city:string; postalCode:string|null;
  country:string; notes:string|null; latitude:number|null; longitude:number|null;
 }
+export interface DeliverySettings { deliveryEnabled:boolean; deliveryFee:number; currencyCode:string; }
+export interface CompanyRevenueRange {
+ from:string;to:string;currencyCode:string;completedOrders:number;completedRepairs:number;
+ productRevenue:number;deliveryFees:number;repairRevenue:number;totalRevenue:number;
+}
 export interface CheckoutAddress {
- deliveryPhone:string; streetAddress:string; city:string; postalCode:string;
+ fulfillmentMethod:'PICKUP'|'DELIVERY'; deliveryPhone:string; streetAddress:string; city:string; postalCode:string;
  country:string; deliveryNotes:string; latitude:number|null; longitude:number|null;
 }
 export interface OrderLine { itemId:number; name:string; quantity:number; unitSellingPrice:number; lineTotal:number; }
@@ -17,6 +22,7 @@ export interface Order {
  id:number; orderNumber:string; companyId:number; customerId:number; status:string; totalAmount:number;
  currencyCode:string; orderedAt:string; completedAt:string|null; customerName:string;
  customerEmail:string; delivery:DeliveryAddress; items:OrderLine[];
+ fulfillmentMethod:'PICKUP'|'DELIVERY';itemsSubtotal:number;deliveryFee:number;
 }
 export interface OrderProfit { orderId:number; currencyCode:string; revenue:number; acquisitionCost:number;
  grossProfit:number; lines:Array<{name:string; quantity:number; unitSellingPrice:number;

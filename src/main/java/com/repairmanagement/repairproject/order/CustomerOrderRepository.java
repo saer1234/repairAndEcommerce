@@ -12,6 +12,8 @@ public interface CustomerOrderRepository extends JpaRepository<CustomerOrder, Lo
     List<CustomerOrder> findByCompany_IdAndCustomer_IdOrderByOrderedAtDesc(Long companyId, Long customerId);
     List<CustomerOrder> findByCompany_IdOrderByOrderedAtDesc(Long companyId);
     List<CustomerOrder> findByCompany_IdAndStatus(Long companyId, OrderStatus status);
+    List<CustomerOrder> findByCompany_IdAndStatusAndCompletedAtGreaterThanEqualAndCompletedAtLessThan(
+        Long companyId, OrderStatus status, java.time.LocalDateTime start, java.time.LocalDateTime end);
     Optional<CustomerOrder> findByIdAndCompany_Id(Long id, Long companyId);
 
     @Lock(LockModeType.PESSIMISTIC_WRITE)

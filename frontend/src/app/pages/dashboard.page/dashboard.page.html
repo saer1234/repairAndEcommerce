@@ -15,6 +15,19 @@
   @if(!platform().length && !loading()){<p class="muted">No platform fees or expenses recorded yet.</p>}
 }
 @if(selectedRole()==='OWNER'||selectedRole()==='MANAGER'){
+ <section class="panel"><h3>Revenue by date range</h3>
+ <p class="muted tiny">Completed sales and repairs by UTC completion date; not the same as cash received or net profit.</p>
+ <div class="field-pair"><label>From <input type="date" [(ngModel)]="rangeFrom" /></label>
+ <label>To <input type="date" [(ngModel)]="rangeTo" /></label></div>
+ <button type="button" class="secondary" (click)="loadRevenueRange()" [disabled]="rangeBusy()">{{rangeBusy()?'Loading…':'Apply range'}}</button>
+ @if(rangeError()){<p class="error" role="alert">{{rangeError()}}</p>}
+ @if(range();as r){<div class="metrics">
+  <div class="metric"><small>Products</small><strong>{{r.productRevenue | number:'1.2-2'}} {{r.currencyCode}}</strong></div>
+  <div class="metric"><small>Delivery fees</small><strong>{{r.deliveryFees | number:'1.2-2'}} {{r.currencyCode}}</strong></div>
+  <div class="metric"><small>Completed repairs</small><strong>{{r.repairRevenue | number:'1.2-2'}} {{r.currencyCode}}</strong></div>
+  <div class="metric"><small>Total recognized revenue</small><strong>{{r.totalRevenue | number:'1.2-2'}} {{r.currencyCode}}</strong></div>
+ </div><p class="muted tiny">{{r.completedOrders}} completed orders · {{r.completedRepairs}} completed repairs</p>}
+ </section>
  <h3>Company manager · {{ctx.managedCompany()?.name}}</h3>
  @if(finance(); as f){
  <div class="metrics">

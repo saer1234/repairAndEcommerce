@@ -12,10 +12,16 @@ class CheckoutRequestValidationTest {
             var validator = factory.getValidator();
             var invalid = new CheckoutRequest("", "", "Kladno", null, "Czechia", null, null, null);
             var violations = validator.validate(invalid);
-            assertTrue(violations.stream().anyMatch(v -> v.getPropertyPath().toString().equals("deliveryPhone")));
-            assertTrue(violations.stream().anyMatch(v -> v.getPropertyPath().toString().equals("streetAddress")));
-            assertTrue(violations.stream().anyMatch(v -> v.getPropertyPath().toString().equals("latitude")));
-            assertTrue(violations.stream().anyMatch(v -> v.getPropertyPath().toString().equals("longitude")));
+            assertTrue(violations.stream().anyMatch(v -> v.getPropertyPath().toString().equals("deliveryDetailsComplete")));
+        }
+    }
+
+    @Test
+    void pickupDoesNotRequireDeliveryAddress() {
+        try (var factory = Validation.buildDefaultValidatorFactory()) {
+            var pickup = new CheckoutRequest(null,null,null,null,null,null,null,null,null,
+                FulfillmentMethod.PICKUP);
+            assertTrue(factory.getValidator().validate(pickup).isEmpty());
         }
     }
 

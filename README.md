@@ -140,3 +140,9 @@ Test: log in, refresh, verify you're still logged in; browse another company's s
 
 See [ITEM_IMAGES_SETUP.md](ITEM_IMAGES_SETUP.md) for Flyway V3, image storage configuration, the upload API, Angular UI, and security notes.
 >>>>>>> fafe4a4 (Initial projecft management frontend, backend and docker setup)
+
+### IT traffic and delivery extensions (V21)
+
+See `WOLFTECH_V21_DASHBOARD_DELIVERY_VALIDATION_TRAFFIC.md`. The platform administrator
+can view daily API request/IP aggregates at `/platform-traffic`. For total Docker
+container network counters, run `bash scripts/check-network.sh` on the VPS.

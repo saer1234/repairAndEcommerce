@@ -1,7 +1,17 @@
 <section class="page-heading"><div><h1>{{ctx.canManage()?'Orders & deliveries':'My orders & invoices'}}</h1><p class="muted">{{ctx.canManage()?'Manage orders for your company, locate deliveries and print invoices.':'View your orders, delivery locations and issued invoices.'}}</p></div><button type="button" class="secondary" (click)="load()">Refresh</button></section>
 @if(error()){<p class="error" role="alert">{{error()}}</p>}
 @if(message()){<p class="success" role="status">{{message()}}</p>}
-@if(ctx.canManage() && currentCompanyId(); as managedId){<app-whish-manager [companyId]="managedId" />}
+@if(ctx.canManage() && currentCompanyId(); as managedId){
+  <section class="panel"><h3>Delivery or store pickup settings</h3>
+    <label><input type="checkbox" [(ngModel)]="deliveryEnabled" /> Offer delivery to customers</label>
+    <label>Flat delivery fee ({{deliveryCurrency}})
+      <input type="number" min="0" max="999999" step="0.01" [(ngModel)]="deliveryFee" [disabled]="!deliveryEnabled" />
+    </label>
+    <p class="muted tiny">Pickup is always free. The delivery fee is shown before checkout and recorded on the order and invoice.</p>
+    <button type="button" [disabled]="deliverySettingsBusy()" (click)="saveDeliverySettings()">{{deliverySettingsBusy()?'Saving…':'Save delivery settings'}}</button>
+  </section>
+  <app-whish-manager [companyId]="managedId" />
+}
 @if(!currentCompanyId()){<p class="muted">Select a {{ctx.canManage()?'workspace':'store'}} company first.</p>}
 <div class="orders-layout"><section class="panel"><h3>{{ctx.canManage()?'Company orders':'Your orders'}}</h3>
  @if(ctx.canManage()){
@@ -18,11 +28,15 @@
  </section><section class="panel">
  @if(selected();as order){
   <div class="panel-heading"><div><h3>{{order.orderNumber}}</h3><p class="muted">{{order.orderedAt | date:'medium'}} · {{order.status}}</p></div></div>
+  <p><strong>Fulfillment:</strong> {{order.fulfillmentMethod==='PICKUP'?'Store pickup':'Delivery'}} ·
+    Items {{order.itemsSubtotal | number:'1.2-2'}} · Delivery fee {{order.deliveryFee | number:'1.2-2'}} {{order.currencyCode}}</p>
   <h4>Client and delivery</h4><p><strong>{{order.customerName}}</strong> · {{order.customerEmail}} · Client #{{order.customerId}}</p>
+  @if(order.fulfillmentMethod==='DELIVERY'){
   <p>Phone: {{order.delivery.phone || 'Not available (legacy order)'}}</p>
   <p>{{order.delivery.streetAddress}}, {{order.delivery.city}}, {{order.delivery.postalCode}}<br/>{{order.delivery.country}}</p>
   @if(order.delivery.notes){<p><strong>Instructions:</strong> {{order.delivery.notes}}</p>}
   @if(order.delivery.latitude!==null && order.delivery.longitude!==null){<p><a [href]="mapUrl(order)" target="_blank" rel="noopener noreferrer">Open delivery pin on map ↗</a> · {{order.delivery.latitude}}, {{order.delivery.longitude}}</p>}
+  }@else{<p class="muted">Customer will collect from the shop.</p>}
   <h4>Items</h4><div class="table-scroll"><table><thead><tr><th>Product</th><th>Quantity</th><th>Price</th><th>Total</th></tr></thead><tbody>
   @for(line of order.items;track line.itemId){<tr><td>{{line.name}}</td><td>{{line.quantity}}</td><td>{{line.unitSellingPrice | number:'1.2-2'}}</td><td>{{line.lineTotal | number:'1.2-2'}}</td></tr>}
   </tbody></table></div><p><strong>Order subtotal: {{order.totalAmount | number:'1.2-2'}} {{order.currencyCode}}</strong></p>

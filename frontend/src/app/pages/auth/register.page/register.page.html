@@ -7,17 +7,26 @@
     <p style="text-align:center;width:100%;">Create Account</p>
   </div>
 
-<form (ngSubmit)="submit()">
-<label>Full name <input name="fullName" [(ngModel)]="fullName" required maxlength="150" /></label>
-<label>Email <input name="email" [(ngModel)]="email" type="email" required /></label>
-<label>Password <input name="password" [(ngModel)]="password" type="password" autocomplete="new-password" minlength="8" required /></label>
+<form #registerForm="ngForm" (ngSubmit)="submit(registerForm)" novalidate>
+<label>Full name <input name="fullName" [(ngModel)]="fullName" #fullNameControl="ngModel" required maxlength="150" autocomplete="name" /></label>
+@if((submitted||fullNameControl.touched)&&fullNameControl.invalid){<p class="field-error">Please enter your full name.</p>}
+@if(fieldErrors()['fullName']){<p class="field-error">{{fieldErrors()['fullName']}}</p>}
+<label>Email <input name="email" [(ngModel)]="email" #emailControl="ngModel" type="email" required maxlength="190" autocomplete="email" /></label>
+@if((submitted||emailControl.touched)&&emailControl.invalid){<p class="field-error">Enter a valid email address.</p>}
+@if(fieldErrors()['email']){<p class="field-error">{{fieldErrors()['email']}}</p>}
+<label>Password <input name="password" [(ngModel)]="password" #passwordControl="ngModel" type="password" autocomplete="new-password" minlength="8" maxlength="72" required /></label>
+@if((submitted||passwordControl.touched)&&passwordControl.invalid){<p class="field-error">Password must contain at least 8 characters (maximum 72).</p>}
+@if(fieldErrors()['password']){<p class="field-error">{{fieldErrors()['password']}}</p>}
+<label>Confirm password <input name="confirmPassword" [(ngModel)]="confirmPassword" type="password" autocomplete="new-password" required /></label>
+@if((submitted || confirmPassword) && confirmPassword!==password){<p class="field-error">Passwords must match.</p>}
 <label>Register as
   <select name="accountType" [(ngModel)]="accountType" required>
     <option value="CLIENT">Client — shop and track repairs</option>
     <!--<option value="OWNER">Owner — register and manage a company</option>-->
   </select>
 </label>
-<label>Phone (optional) <input name="phone" [(ngModel)]="phone" /></label>
+<label>Phone (optional) <input name="phone" [(ngModel)]="phone" maxlength="40" autocomplete="tel" /></label>
+@if(fieldErrors()['phone']){<p class="field-error">{{fieldErrors()['phone']}}</p>}
 @if(error()){<p class="error" role="alert">{{error()}}</p>}
-<button class="primary" [disabled]="busy()">{{busy()?'Registering…':'Create account'}}</button></form>
+<button class="primary" [disabled]="busy() || registerForm.invalid || password!==confirmPassword">{{busy()?'Registering…':'Create account'}}</button></form>
 <p class="muted">Already registered? <a routerLink="/login">Sign in</a></p><p class="muted"><a routerLink="/about">About Wolf Tech Repair</a></p><p class="muted"><a routerLink="/">← Back to home</a></p></section></main>

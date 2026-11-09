@@ -14,6 +14,8 @@ public interface RepairRequestRepository extends JpaRepository<RepairRequest, Lo
     Optional<RepairRequest> findByIdAndCustomer_Id(Long id, Long customerId);
     List<RepairRequest> findByCompany_IdAndCustomer_IdOrderByCreatedAtDesc(Long companyId, Long customerId);
     List<RepairRequest> findByCompany_IdAndStatusIn(Long companyId, List<RepairStatus> statuses);
+    List<RepairRequest> findByCompany_IdAndStatusInAndCompletedAtGreaterThanEqualAndCompletedAtLessThan(
+        Long companyId, List<RepairStatus> statuses, java.time.LocalDateTime start, java.time.LocalDateTime end);
     Optional<RepairRequest> findByIdAndCompany_Id(Long id, Long companyId);
 
     @Lock(LockModeType.PESSIMISTIC_WRITE)

@@ -91,6 +91,8 @@ public class FinanceService {
             for(OrderItem i:orderItems.findByOrder_IdOrderByIdAsc(order.getId())){
                 lines.add(new InvoiceLine(invoice,i.getItemNameSnapshot(),BigDecimal.valueOf(i.getQuantity()),i.getUnitSellingPrice()));
             }
+            if (order.getDeliveryFee().signum() > 0)
+                lines.add(new InvoiceLine(invoice,"Delivery fee",BigDecimal.ONE,order.getDeliveryFee()));
         }else{
             for(RepairPart part:repairParts.findByRepair_IdOrderByIdAsc(repair.getId())){
                 lines.add(new InvoiceLine(invoice,"Repair part: "+part.getItem().getName(),
@@ -106,7 +108,7 @@ public class FinanceService {
         if(order!=null){
             return orderItems.findByOrder_IdOrderByIdAsc(order.getId()).stream()
                 .map(x->x.getUnitSellingPrice().multiply(BigDecimal.valueOf(x.getQuantity())))
-                .reduce(ZERO,BigDecimal::add);
+                .reduce(ZERO,BigDecimal::add).add(order.getDeliveryFee());
         }
         BigDecimal subtotal=repair.getLaborCharge();
         for(RepairPart p:repairParts.findByRepair_IdOrderByIdAsc(repair.getId()))

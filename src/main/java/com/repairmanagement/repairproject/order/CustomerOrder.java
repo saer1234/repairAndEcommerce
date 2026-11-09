@@ -26,6 +26,14 @@ public class CustomerOrder {
     @JdbcTypeCode(SqlTypes.VARCHAR)
     @Column(nullable = false, length = 25)
     private OrderStatus status = OrderStatus.CONFIRMED;
+    @Enumerated(EnumType.STRING)
+    @JdbcTypeCode(SqlTypes.VARCHAR)
+    @Column(name="fulfillment_method",nullable=false,length=20)
+    private FulfillmentMethod fulfillmentMethod = FulfillmentMethod.DELIVERY;
+    @Column(name="delivery_fee",nullable=false,precision=12,scale=2)
+    private BigDecimal deliveryFee = BigDecimal.ZERO;
+    @Column(name="items_subtotal",precision=12,scale=2)
+    private BigDecimal itemsSubtotal;
     @Column(name = "total_amount", nullable = false, precision = 12, scale = 2)
     private BigDecimal totalAmount;
     @Column(name = "ordered_at", nullable = false)
@@ -53,6 +61,8 @@ public class CustomerOrder {
         this.totalAmount = totalAmount;
     }
     public void setDelivery(CheckoutRequest delivery) {
+        this.fulfillmentMethod = delivery.effectiveMethod();
+        if (this.fulfillmentMethod == FulfillmentMethod.PICKUP) return;
         this.deliveryPhone = delivery.deliveryPhone().trim();
         this.deliveryStreet = delivery.streetAddress().trim();
         this.deliveryCity = delivery.city().trim();
@@ -61,6 +71,11 @@ public class CustomerOrder {
         this.deliveryNotes = delivery.deliveryNotes() == null ? null : delivery.deliveryNotes().trim();
         this.deliveryLatitude = delivery.latitude();
         this.deliveryLongitude = delivery.longitude();
+    }
+    public void snapshotPrice(BigDecimal itemsSubtotal, BigDecimal deliveryFee) {
+        this.itemsSubtotal = itemsSubtotal;
+        this.deliveryFee = deliveryFee;
+        this.totalAmount = itemsSubtotal.add(deliveryFee);
     }
     @PrePersist void beforeInsert() { orderedAt = LocalDateTime.now(ZoneOffset.UTC); }
     public void complete() {
@@ -74,6 +89,9 @@ public class CustomerOrder {
     public String getOrderNumber() { return orderNumber; }
     public OrderStatus getStatus() { return status; }
     public BigDecimal getTotalAmount() { return totalAmount; }
+    public FulfillmentMethod getFulfillmentMethod() { return fulfillmentMethod; }
+    public BigDecimal getItemsSubtotal() { return itemsSubtotal == null ? totalAmount.subtract(getDeliveryFee()) : itemsSubtotal; }
+    public BigDecimal getDeliveryFee() { return deliveryFee == null ? BigDecimal.ZERO : deliveryFee; }
     public LocalDateTime getOrderedAt() { return orderedAt; }
     public LocalDateTime getCompletedAt() { return completedAt; }
     public String getCustomerNameSnapshot() { return customerNameSnapshot == null ? customer.getFullName() : customerNameSnapshot; }

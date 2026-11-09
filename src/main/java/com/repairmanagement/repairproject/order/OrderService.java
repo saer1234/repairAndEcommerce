@@ -70,7 +70,21 @@ public class OrderService {
             locked.add(item);
             total = total.add(item.getEffectiveSellingPrice().multiply(BigDecimal.valueOf(cartLine.getQuantity())));
         }
-        // If the offer changed after the cart preview, ask the customer to review the new total.
+        FulfillmentMethod method = delivery.effectiveMethod();
+        BigDecimal deliveryFee = BigDecimal.ZERO;
+        if (method == FulfillmentMethod.DELIVERY) {
+            if (!company.isDeliveryEnabled())
+                throw new ResponseStatusException(HttpStatus.CONFLICT, "This shop does not currently offer delivery");
+            if (blank(delivery.deliveryPhone()) || blank(delivery.streetAddress()) || blank(delivery.city()) ||
+                blank(delivery.country()) || delivery.latitude() == null || delivery.longitude() == null) {
+                throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
+                    "For delivery, phone, address, city, country and map coordinates are required");
+            }
+            deliveryFee = company.getDeliveryFee();
+        }
+        BigDecimal itemSubtotal = total;
+        total = total.add(deliveryFee);
+        // If the offer or delivery fee changed, ask the customer to review the new total.
         if (delivery.expectedTotal() != null && delivery.expectedTotal().compareTo(total) != 0) {
             throw new ResponseStatusException(HttpStatus.CONFLICT,
                 "Cart prices changed. Refresh the cart and confirm the latest total before ordering");
@@ -78,6 +92,7 @@ public class OrderService {
         CustomerOrder order = new CustomerOrder(company, customer,
             "ORD-" + UUID.randomUUID().toString().toUpperCase(), total);
         order.setDelivery(delivery);
+        order.snapshotPrice(itemSubtotal, deliveryFee);
         order = orders.saveAndFlush(order);
         List<OrderItem> completedLines = new java.util.ArrayList<>();
         for (int idx = 0; idx < sorted.size(); idx++) {
@@ -193,6 +208,7 @@ public class OrderService {
         return OrderProfitView.of(order, orderItems.findByOrder_IdOrderByIdAsc(orderId));
     }
 
+    private static boolean blank(String value) { return value == null || value.isBlank(); }
     private CustomerOrder lockOrder(Long companyId, Long orderId) {
         return orders.lockForUpdate(companyId, orderId)
             .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Order not found"));

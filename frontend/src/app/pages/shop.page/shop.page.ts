@@ -8,7 +8,7 @@ import { CompanyContext } from '../../core/services/company-context';
 import { componentCategories, componentCategory, isDeviceTypeValue } from '../../shared/utils/device-classification';
 import { ItemDetailComponent } from '../../shared/components/item-detail.component/item-detail.component';
 import { itemImageSrc } from '../../shared/utils/item-image';
-import { Product, Cart, Order, CheckoutAddress } from '../../core/models/model';
+import { Product, Cart, Order, CheckoutAddress, DeliverySettings } from '../../core/models/model';
 import { verifiedFitSelected, verifiedFitTypes, verifiedFitBrands, verifiedFitModels, matchesVerifiedFit } from '../../shared/utils/verified-fit';
 import { WhishPaymentComponent } from '../../shared/components/whish-payment.component/whish-payment.component';
 
@@ -61,11 +61,36 @@ export class ShopPage {
  });
  cart=signal<Cart|null>(null);lastOrder=signal<Order|null>(null);message=signal('');error=signal('');busy=signal(false);locating=signal(false);
  quantityDraft:Record<number,number>={};
- delivery:CheckoutAddress={deliveryPhone:'',streetAddress:'',city:'',postalCode:'',country:'',deliveryNotes:'',latitude:null,longitude:null};
+ fulfillmentMethod:'PICKUP'|'DELIVERY'='PICKUP';
+ deliverySettings=signal<DeliverySettings>({deliveryEnabled:false,deliveryFee:0,currencyCode:''});
+ deliveryConfirmOpen=signal(false);
+ payableTotal(){return Math.round((Number(this.cart()?.estimatedTotal??0)+(this.fulfillmentMethod==='DELIVERY' ? Number(this.deliverySettings().deliveryFee):0))*100)/100;}
+ chooseFulfillment(value:'PICKUP'|'DELIVERY'){
+   this.fulfillmentMethod=value;
+   this.error.set('');
+ }
+ requestCheckout(){
+   if(this.fulfillmentMethod==='DELIVERY') {
+     if(!this.deliverySettings().deliveryEnabled){this.error.set('Delivery is unavailable for this shop.');return;}
+     if(!this.validCoordinates() || !this.delivery.deliveryPhone.trim() || !this.delivery.streetAddress.trim() ||
+       !this.delivery.city.trim() || !this.delivery.country.trim()) {
+         this.error.set('For delivery, complete the address, phone and map location.');return;
+       }
+     this.deliveryConfirmOpen.set(true);return;
+   }
+   this.checkout();
+ }
+ cancelDelivery(){this.deliveryConfirmOpen.set(false);}
+ confirmDelivery(){this.deliveryConfirmOpen.set(false);this.checkout();}
+ delivery:CheckoutAddress={fulfillmentMethod:'PICKUP',deliveryPhone:'',streetAddress:'',city:'',postalCode:'',country:'',deliveryNotes:'',latitude:null,longitude:null};
  constructor(){this.delivery.deliveryPhone=this.auth.user()?.phone??'';
   effect(()=>{if(this.ctx.selected() && this.auth.canShop()){this.resetPage();this.refresh();}});}
  refresh(){this.selectedItem.set(null);const id=this.ctx.selected();if(!id || !this.auth.canShop())return;if(this.lastOrder() && this.lastOrder()!.companyId!==id)this.lastOrder.set(null);this.error.set('');
   this.api.get<Product[]>(`/companies/${id}/items`).subscribe({next:v=>{this.products.set(v);this.setPage(this.page());},error:()=>this.error.set('Unable to load items')});
+  this.api.get<DeliverySettings>(`/catalog/companies/${id}/delivery-settings`).subscribe({
+    next:s=>{this.deliverySettings.set(s);if(!s.deliveryEnabled)this.fulfillmentMethod='PICKUP';},
+    error:()=>{this.deliverySettings.set({deliveryEnabled:false,deliveryFee:0,currencyCode:''});this.fulfillmentMethod='PICKUP';}
+  });
   this.api.get<Cart>(`/companies/${id}/cart`).subscribe({next:v=>this.useCart(v),error:()=>this.cart.set(null)});
  }
  private useCart(c:Cart){this.cart.set(c);this.quantityDraft=Object.fromEntries(c.items.map(i=>[i.itemId,i.quantity]));}
@@ -86,11 +111,12 @@ export class ShopPage {
  useCurrentLocation(){if(!navigator.geolocation){this.error.set('Geolocation unavailable. Enter latitude and longitude manually.');return;}
   this.locating.set(true);navigator.geolocation.getCurrentPosition(pos=>{this.delivery.latitude=+pos.coords.latitude.toFixed(7);this.delivery.longitude=+pos.coords.longitude.toFixed(7);this.locating.set(false);this.error.set('');},()=>{this.locating.set(false);this.error.set('Could not get your location. Enter coordinates from a map.');},{enableHighAccuracy:true,timeout:12000,maximumAge:0});
  }
- checkout(){const id=this.ctx.selected();if(!id||!this.auth.canShop()||this.busy()||!this.validCoordinates())return;
-  if(!this.delivery.deliveryPhone.trim()||!this.delivery.streetAddress.trim()||!this.delivery.city.trim()||!this.delivery.country.trim())return;
+ checkout(){const id=this.ctx.selected();if(!id||!this.auth.canShop()||this.busy())return;
+  if(this.fulfillmentMethod==='DELIVERY' && (!this.validCoordinates() || !this.delivery.deliveryPhone.trim() ||
+     !this.delivery.streetAddress.trim() || !this.delivery.city.trim() || !this.delivery.country.trim()))return;
   const changed=(this.cart()?.items??[]).some(i=>this.quantityDraft[i.itemId]!==i.quantity);
   if(changed){this.error.set('Save quantity changes using Update before placing the order.');return;}
   this.error.set('');this.message.set('');this.busy.set(true);
-  this.api.post<Order>(`/companies/${id}/checkout`,{...this.delivery, expectedTotal:this.cart()?.estimatedTotal}).subscribe({next:order=>{this.busy.set(false);this.lastOrder.set(order);this.message.set(`Order ${order.orderNumber} submitted. Use Whish transfer below if you want to pay now, or view My orders.`);this.refresh();},error:()=>{this.error.set('Checkout failed. Prices may have changed; refresh your cart and confirm the total, then retry.');this.busy.set(false);this.refresh();}});
+  this.api.post<Order>(`/companies/${id}/checkout`,{...this.delivery, fulfillmentMethod:this.fulfillmentMethod, expectedTotal:this.payableTotal()}).subscribe({next:order=>{this.busy.set(false);this.lastOrder.set(order);this.message.set(`Order ${order.orderNumber} submitted. Use Whish transfer below if you want to pay now, or view My orders.`);this.refresh();},error:()=>{this.error.set('Checkout failed. Prices may have changed; refresh your cart and confirm the total, then retry.');this.busy.set(false);this.refresh();}});
  }
 }

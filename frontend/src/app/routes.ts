@@ -6,6 +6,7 @@ import { SupportPage } from './pages/support.page/support.page';
 import { authGuard } from './core/guards/auth-guard';
 import { platformOwnerGuard } from './core/guards/platform-owner-guard';
 import { PlatformUsersPage } from './pages/platform-users.page/platform-users.page';
+import { PlatformTrafficPage } from './pages/platform-traffic.page/platform-traffic.page';
 import { clientShopGuard } from './core/guards/client-shop-guard';
 import { LoginPage } from './pages/auth/login.page/login.page';
 import { RegisterPage } from './pages/auth/register.page/register.page';
@@ -26,6 +27,7 @@ export const routes:Routes=[
  {path:'',component:ShellPage,canActivate:[authGuard],children:[
    {path:'dashboard',component:DashboardPage},
    {path:'platform-users',component:PlatformUsersPage,canActivate:[platformOwnerGuard]},
+   {path:'platform-traffic',component:PlatformTrafficPage,canActivate:[platformOwnerGuard]},
    {path:'support',component:SupportPage},
    {path:'about-settings',component:AboutSettingsPage},
    {path:'shop',component:ShopPage,canActivate:[clientShopGuard]},

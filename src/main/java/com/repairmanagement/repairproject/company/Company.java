@@ -28,6 +28,11 @@ public class Company {
     @Column(name = "whish_wallet_phone", length = 40)
     private String whishWalletPhone;
 
+    @Column(name = "delivery_enabled", nullable = false)
+    private boolean deliveryEnabled = true;
+    @Column(name = "delivery_fee", nullable = false, precision = 12, scale = 2)
+    private java.math.BigDecimal deliveryFee = java.math.BigDecimal.ZERO;
+
     @Column(name = "currency_code", nullable = false, length = 3)
     private String currencyCode;
 
@@ -69,5 +74,11 @@ public class Company {
     public String getCurrencyCode() { return currencyCode; }
     public String getWhishWalletPhone() { return whishWalletPhone; }
     public void setWhishWalletPhone(String phone) { this.whishWalletPhone = phone; }
+    public boolean isDeliveryEnabled() { return deliveryEnabled; }
+    public java.math.BigDecimal getDeliveryFee() { return deliveryFee; }
+    public void configureDelivery(boolean enabled, java.math.BigDecimal fee) {
+        this.deliveryEnabled = enabled;
+        this.deliveryFee = fee;
+    }
     public CompanyStatus getStatus() { return status; }
 }

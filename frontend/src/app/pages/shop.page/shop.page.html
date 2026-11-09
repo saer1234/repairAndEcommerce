@@ -112,8 +112,16 @@
  <span>{{line.lineTotal | number:'1.2-2'}} {{c.currencyCode}}</span><button type="button" class="secondary" [disabled]="busy()" (click)="remove(line.itemId)">Remove</button></div>}
  <p class="checkout-total"><strong>Total: {{c.estimatedTotal | number:'1.2-2'}} {{c.currencyCode}}</strong></p>
  @if(c.items.length){
- <form #deliveryForm="ngForm" (ngSubmit)="checkout()" class="delivery-form">
-  <h3>Delivery details</h3><p class="muted tiny">Required before the order is placed. Your account identity is used as the customer name.</p>
+ <form #deliveryForm="ngForm" (ngSubmit)="requestCheckout()" class="delivery-form">
+  <h3>Fulfillment</h3><p class="muted tiny">Choose store pickup (free), or delivery when offered by the shop.</p>
+  <div class="fulfillment-options" role="radiogroup" aria-label="Order fulfillment">
+    <label><input type="radio" name="fulfillment" [ngModel]="fulfillmentMethod" value="PICKUP" (ngModelChange)="chooseFulfillment('PICKUP')" /> Pick up from store · Free</label>
+    @if(deliverySettings().deliveryEnabled){
+    <label><input type="radio" name="fulfillment" [ngModel]="fulfillmentMethod" value="DELIVERY" (ngModelChange)="chooseFulfillment('DELIVERY')" /> Deliver to my address · +{{deliverySettings().deliveryFee | number:'1.2-2'}} {{c.currencyCode}}</label>
+    }
+  </div>
+  @if(fulfillmentMethod==='DELIVERY'){
+  <h3>Delivery details</h3><p class="muted tiny">Your account identity is used as the customer name. Set an accurate map pin.</p>
   <div class="field-pair"><label>Delivery phone
    <input name="phone" [(ngModel)]="delivery.deliveryPhone" required maxlength="40" autocomplete="tel" />
   </label><label>Country
@@ -139,7 +147,25 @@
    <input type="number" name="longitude" [(ngModel)]="delivery.longitude" required min="-180" max="180" step="any" placeholder="e.g. 35.5018" />
   </label></div>
   @if(validCoordinates()) {<a [href]="mapUrl()" target="_blank" rel="noopener noreferrer">Verify pin on OpenStreetMap ↗</a>}
-  <div class="checkout-actions"><button class="primary" type="submit" [disabled]="busy() || deliveryForm.invalid || !validCoordinates()">{{busy()?'Submitting…':'Place order'}}</button><p class="muted tiny">Stock and prices are checked again when you submit. The final quantities are the saved cart quantities.</p></div>
+  }
+  <p class="checkout-total"><strong>Items: {{c.estimatedTotal | number:'1.2-2'}} {{c.currencyCode}}</strong></p>
+  @if(fulfillmentMethod==='DELIVERY') {<p>Delivery fee: {{deliverySettings().deliveryFee | number:'1.2-2'}} {{c.currencyCode}}</p>}
+  <p class="checkout-total"><strong>Payable total: {{payableTotal() | number:'1.2-2'}} {{c.currencyCode}}</strong></p>
+  <div class="checkout-actions"><button class="primary" type="submit" [disabled]="busy() || deliveryForm.invalid">{{busy()?'Submitting…':'Place order'}}</button><p class="muted tiny">Stock and prices are checked again when you submit. The final quantities are the saved cart quantities.</p></div>
  </form>}
  }@else{<p class="muted">Your cart is empty or has not been loaded yet.</p>}
 </section>
+@if(deliveryConfirmOpen()){
+  <div class="wolf-modal-backdrop" role="presentation">
+    <section class="wolf-modal" role="alertdialog" aria-modal="true" aria-labelledby="delivery-popup-title"
+      aria-describedby="delivery-popup-description">
+      <h2 id="delivery-popup-title">Confirm delivery fee</h2>
+      <p id="delivery-popup-description">You selected delivery instead of free store pickup.
+      The shop charges <strong>{{deliverySettings().deliveryFee | number:'1.2-2'}} {{deliverySettings().currencyCode}}</strong> for delivery.</p>
+      <p><strong>Total to pay: {{payableTotal() | number:'1.2-2'}} {{deliverySettings().currencyCode}}</strong></p>
+      <p class="muted tiny">Your order will use the address and location pin you entered.</p>
+      <div class="table-actions"><button type="button" class="secondary" (click)="cancelDelivery()">Go back</button>
+      <button type="button" class="primary" [disabled]="busy()" (click)="confirmDelivery()">Confirm delivery and place order</button></div>
+    </section>
+  </div>
+}

@@ -35,6 +35,7 @@ services:
       CORS_ALLOWED_ORIGINS: ${CORS_ALLOWED_ORIGINS:-http://localhost:4200,https://wolftech.space}
       SUPPORT_WS_ALLOWED_ORIGINS: ${SUPPORT_WS_ALLOWED_ORIGINS:-http://localhost:4200,https://wolftech.space}
       ITEM_IMAGES_DIR: /data/item-images
+      APP_TRAFFIC_TRUST_CADDY_REAL_IP: "true"
       JAVA_TOOL_OPTIONS: -XX:MaxRAMPercentage=65.0
     expose:
       - "8081"

@@ -17,9 +17,26 @@ public class ApiErrorHandler {
             "error", "Request rejected", "message", reason));
     }
 
-    @ExceptionHandler(MethodArgumentNotValidException.class)
-    public ResponseEntity<Map<String, String>> badRequest(MethodArgumentNotValidException ex) {
+    @ExceptionHandler(org.springframework.http.converter.HttpMessageNotReadableException.class)
+    public ResponseEntity<Map<String,String>> invalidJson() {
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(Map.of(
-            "error", "Validation failed", "message", "Check required fields and field formats"));
+            "error","Invalid request",
+            "message","Some information is invalid. Check the account type and field formats."));
+    }
+
+    @ExceptionHandler(MethodArgumentNotValidException.class)
+    public ResponseEntity<Map<String, Object>> badRequest(MethodArgumentNotValidException ex) {
+        // Response includes one human-readable reason and a stable map of field names.
+        // Do not echo submitted passwords or other sensitive values.
+        java.util.Map<String,String> fields = new java.util.LinkedHashMap<>();
+        for (var violation : ex.getBindingResult().getFieldErrors()) {
+            fields.putIfAbsent(violation.getField(), violation.getDefaultMessage() == null
+                ? "Invalid value" : violation.getDefaultMessage());
+        }
+        java.util.Map<String,Object> body = new java.util.LinkedHashMap<>();
+        body.put("error", "Validation failed");
+        body.put("message", "Please correct the highlighted fields.");
+        body.put("fieldErrors", fields);
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(body);
     }
 }

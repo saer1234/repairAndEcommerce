@@ -98,6 +98,57 @@ class OrderServiceTest {
     }
 
     @Test
+    void deliveryFeeIsSavedAndIncludedInTheFinalOrderPrice() {
+        company.configureDelivery(true,new BigDecimal("5.50"));
+        CartItem line = new CartItem(cart,item,1);
+        when(carts.lockForUpdate(1L,42L)).thenReturn(Optional.of(cart));
+        when(cartItems.findByCart_IdOrderByIdAsc(15L)).thenReturn(List.of(line));
+        when(items.lockForUpdate(1L,10L)).thenReturn(Optional.of(item));
+        when(orders.saveAndFlush(any(CustomerOrder.class))).thenAnswer(call -> {
+            CustomerOrder order=call.getArgument(0);
+            ReflectionTestUtils.setField(order,"id",99L);
+            ReflectionTestUtils.setField(order,"orderedAt",LocalDateTime.now());
+            return order;
+        });
+        OrderView view=service.checkout(1L,delivery(),"jane@example.com");
+        assertEquals(new BigDecimal("85.50"),view.totalAmount());
+        assertEquals(new BigDecimal("80.00"),view.itemsSubtotal());
+        assertEquals(new BigDecimal("5.50"),view.deliveryFee());
+        assertEquals(FulfillmentMethod.DELIVERY,view.fulfillmentMethod());
+    }
+
+    @Test
+    void pickupHasNoDeliveryFeeAndDoesNotNeedCoordinates() {
+        company.configureDelivery(false,new BigDecimal("10.00"));
+        CartItem line = new CartItem(cart,item,1);
+        when(carts.lockForUpdate(1L,42L)).thenReturn(Optional.of(cart));
+        when(cartItems.findByCart_IdOrderByIdAsc(15L)).thenReturn(List.of(line));
+        when(items.lockForUpdate(1L,10L)).thenReturn(Optional.of(item));
+        when(orders.saveAndFlush(any(CustomerOrder.class))).thenAnswer(call -> {
+            CustomerOrder order=call.getArgument(0);
+            ReflectionTestUtils.setField(order,"id",100L);
+            ReflectionTestUtils.setField(order,"orderedAt",LocalDateTime.now());
+            return order;
+        });
+        var pickup=new CheckoutRequest(null,null,null,null,null,null,null,null,new BigDecimal("80.00"),FulfillmentMethod.PICKUP);
+        OrderView view=service.checkout(1L,pickup,"jane@example.com");
+        assertEquals(new BigDecimal("80.00"),view.totalAmount());
+        assertEquals(new BigDecimal("0"),view.deliveryFee());
+        assertEquals(FulfillmentMethod.PICKUP,view.fulfillmentMethod());
+    }
+
+    @Test
+    void checkoutRejectsDeliveryWhenDisabled() {
+        company.configureDelivery(false,new BigDecimal("3.00"));
+        var line = new CartItem(cart,item,1);
+        when(carts.lockForUpdate(1L,42L)).thenReturn(Optional.of(cart));
+        when(cartItems.findByCart_IdOrderByIdAsc(15L)).thenReturn(List.of(line));
+        when(items.lockForUpdate(1L,10L)).thenReturn(Optional.of(item));
+        assertThrows(ResponseStatusException.class,()->service.checkout(1L,delivery(),"jane@example.com"));
+        verify(orders,never()).saveAndFlush(any());
+    }
+
+    @Test
     void checkoutRejectsInsufficientStockWithoutSavingOrderOrMovement() {
         CartItem line = new CartItem(cart, item, 6);
         when(carts.lockForUpdate(1L, 42L)).thenReturn(Optional.of(cart));
