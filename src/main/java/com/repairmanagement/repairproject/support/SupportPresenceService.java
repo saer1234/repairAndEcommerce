@@ -6,6 +6,7 @@ import java.time.LocalDateTime;
 import java.time.ZoneOffset;
 import java.util.List;
 import org.springframework.http.HttpStatus;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -20,14 +21,16 @@ public class SupportPresenceService {
     private final CompanyMemberRepository memberships;
     private final CompanyRepository companies;
     private final UserService users;
+    private final ApplicationEventPublisher events;
 
     public SupportPresenceService(SupportAgentPresenceRepository presence,
                                   CompanyMemberRepository memberships, CompanyRepository companies,
-                                  UserService users) {
+                                  UserService users, ApplicationEventPublisher events) {
         this.presence = presence;
         this.memberships = memberships;
         this.companies = companies;
         this.users = users;
+        this.events = events;
     }
 
     private User staff(Long companyId, String email) {
@@ -66,19 +69,36 @@ public class SupportPresenceService {
         User user = staff(companyId, email);
         Company shop = companies.findById(companyId).filter(c -> c.getStatus() == CompanyStatus.ACTIVE)
             .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Shop not available"));
+        long before = onlineCount(companyId);
         LocalDateTime expiresAt = LocalDateTime.now(ZoneOffset.UTC).plusSeconds(PRESENCE_SECONDS);
         SupportAgentPresence record = presence.findByCompany_IdAndUser_IdAndSessionId(
             companyId, user.getId(), request.sessionId()).orElseGet(() ->
                 new SupportAgentPresence(shop, user, request.sessionId(), expiresAt));
         record.renew(expiresAt);
         presence.saveAndFlush(record);
-        return new SupportAvailabilityView(true, onlineCount(companyId));
+        long after = onlineCount(companyId);
+        if (before != after) events.publishEvent(new SupportAvailabilityChanged(companyId, after));
+        return new SupportAvailabilityView(after > 0, after);
     }
 
     @Transactional
     public void leave(Long companyId, String sessionId, String email) {
         User user = staff(companyId, email);
-        presence.deleteSession(companyId, user.getId(), sessionId);
+        removeSession(companyId, user.getId(), sessionId);
+    }
+
+    /** Called only for the authenticated socket's bound browser session. */
+    @Transactional
+    public void leaveDisconnected(Long companyId, Long userId, String sessionId) {
+        removeSession(companyId, userId, sessionId);
+    }
+
+    private void removeSession(Long companyId, Long userId, String sessionId) {
+        long before = onlineCount(companyId);
+        presence.deleteSession(companyId, userId, sessionId);
+        presence.flush();
+        long after = onlineCount(companyId);
+        if (before != after) events.publishEvent(new SupportAvailabilityChanged(companyId, after));
     }
 
     // Cleanup of abandoned browser sessions; expired rows never count as online even before cleanup.

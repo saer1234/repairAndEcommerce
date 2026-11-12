@@ -35,6 +35,22 @@ export class CompanyContext {
     this.managedSelected.set(null);
   }
 
+  refreshPublic(onError: (e: unknown) => void = () => {}): void {
+    this.loaded.set(false);
+    this.mine.set([]);
+    this.managedSelected.set(null);
+    this.api.get<Company[]>('/catalog/companies').subscribe({
+      next: all => {
+        this.available.set(all);
+        if (!all.some(c => c.id === this.selected())) {
+          this.selected.set(all[0]?.id ?? null);
+        }
+        this.loaded.set(true);
+      },
+      error: onError
+    });
+  }
+
   refresh(onError: (e: unknown) => void = () => {}): void {
     this.loaded.set(false);
     forkJoin({

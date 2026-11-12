@@ -49,4 +49,7 @@ public class CompanyMember {
     public User getUser() { return user; }
     public MemberRole getMemberRole() { return memberRole; }
     public boolean isActive() { return active; }
+    public void changeRole(MemberRole role) { this.memberRole = role; }
+    public void deactivate() { this.active = false; }
+    public void reactivate(MemberRole role) { this.memberRole = role; this.active = true; }
 }

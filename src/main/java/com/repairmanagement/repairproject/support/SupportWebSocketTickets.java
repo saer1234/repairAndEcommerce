@@ -65,6 +65,11 @@ public class SupportWebSocketTickets {
         }
     }
 
+    public void revoke(Long companyId, Long userId) {
+        pending.entrySet().removeIf(e -> companyId.equals(e.getValue().companyId()) &&
+            userId.equals(e.getValue().userId()));
+    }
+
     @Scheduled(fixedDelay = 30000)
     public void cleanUp() {
         Instant now = Instant.now();

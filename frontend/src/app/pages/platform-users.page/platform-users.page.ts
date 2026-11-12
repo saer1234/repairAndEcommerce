@@ -31,6 +31,15 @@ export class PlatformUsersPage implements OnInit {
   search = '';
   private appliedSearch = '';
 
+  changeRole(user: PlatformUser, role: PlatformUser['platformRole']): void {
+    if (role === 'SUPER_ADMIN' || user.platformRole === 'SUPER_ADMIN' || role === user.platformRole) return;
+    this.error.set('');
+    this.api.patch<PlatformUser>(`/platform/users/${user.id}/role`, {role}).subscribe({
+      next: updated => this.users.update(list => list.map(u => u.id === updated.id ? updated : u)),
+      error: err => {this.error.set(err.error?.detail || 'Unable to update role. Verify company memberships.'); this.load();}
+    });
+  }
+
   ngOnInit(): void { this.load(); }
 
   find(): void {

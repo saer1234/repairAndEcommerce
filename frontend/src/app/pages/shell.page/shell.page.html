@@ -2,13 +2,14 @@
 <div class="app-shell">
   <!-- Persistent desktop navigation. Hidden completely at mobile widths. -->
   <aside class="desktop-sidebar" aria-label="Application sidebar">
-    <a routerLink="/" class="sidebar-brand" aria-label="Wolf Tech homepage">
+    <a routerLink="/shop" class="sidebar-brand" aria-label="Wolf Tech homepage">
       <span class="brand-symbol" aria-hidden="true">
         <img src="assets/wolflog-removebg-preview.png" alt="Wolf Tech Repair Logo"  style="width: 100%;height:auto"/>
       </span>
       <span class="sidebar-brand-copy"><strong>Wolf Tech Repair</strong><small>MANAGEMENT SUITE</small></span>
     </a>
     <ng-container [ngTemplateOutlet]="navigationLinks"></ng-container>
+    @if (auth.signedIn()) {
     <div class="nav-profile">
       <div class="nav-profile-person">
         <span class="profile-avatar" aria-hidden="true">{{ initials }}</span>
@@ -19,6 +20,22 @@
         <span>Log out</span>
       </button>
     </div>
+    } @else {
+      <div class="nav-profile guest-auth-panel">
+        <p class="guest-auth-eyebrow">WOLF TECH</p>
+        <p class="guest-auth-description">{{lang.t('Sign in to buy')}}</p>
+        <div class="guest-auth-actions">
+          <a routerLink="/register" class="guest-auth-button guest-auth-primary">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>
+            <span>{{lang.t('Create account')}}</span>
+          </a>
+          <a routerLink="/login" class="guest-auth-button guest-auth-secondary">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10 17l5-5-5-5M15 12H3M12 3h6a3 3 0 0 1 3 3v12a3 3 0 0 1-3 3h-6"/></svg>
+            <span>{{lang.t('Sign in')}}</span>
+          </a>
+        </div>
+      </div>
+    }
   </aside>
 
   <div class="workspace-column">
@@ -34,20 +51,26 @@
         </span>
         <strong>Wolf Tech</strong>
       </div>
+      @if (auth.signedIn()) {
       <button type="button" class="mobile-logout" (click)="signOut()" aria-label="Log out of Wolf Tech">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><path d="m16 17 5-5-5-5M21 12H9"/></svg>
         <span>Log out</span>
       </button>
+      } @else { <a routerLink="/login" class="mobile-guest-signin">{{lang.t('Sign in')}}</a> }
     </header>
 
     <main id="main-content" class="main-content" tabindex="-1">
       <header class="workspace-header">
         <div class="workspace-heading">
-          <p class="workspace-eyebrow">YOUR WORKSPACE</p>
-          <h2>Wolf Tech Workspace</h2>
-          <p class="workspace-subtitle">Repairs, inventory, orders and support in one place.</p>
+          <p class="workspace-eyebrow">{{lang.t(auth.signedIn() ? 'YOUR WORKSPACE' : 'PUBLIC STORE')}}</p>
+          <h2>{{lang.t(auth.signedIn() ? 'Wolf Tech Workspace' : 'Browse Wolf Tech Stores')}}</h2>
+          <p class="workspace-subtitle">{{lang.t('Repairs, inventory, orders and support in one place.')}}</p>
         </div>
         <div class="context-pickers">
+          <div class="store-language-picker" aria-label="Store language">
+            <button type="button" [class.selected]="lang.language()==='en'" [attr.aria-pressed]="lang.language()==='en'" (click)="setLanguage('en')">EN</button>
+            <button type="button" [class.selected]="lang.language()==='ar'" [attr.aria-pressed]="lang.language()==='ar'" (click)="setLanguage('ar')">عربي</button>
+          </div>
           @if (context.mine().length) {
             <div class="company-picker">
               <label for="managedCompany">My workspace <span class="picker-note">(private)</span></label>
@@ -59,9 +82,9 @@
               </select>
             </div>
           }
-          @if (auth.canShop()) {
+          @if (!auth.signedIn() || auth.canShop()) {
             <div class="company-picker">
-              <label for="storeCompany">Browse customer store</label>
+              <label for="storeCompany">{{lang.t('Browse customer store')}}</label>
               <select id="storeCompany" [ngModel]="context.selected()"
                       (ngModelChange)="context.selected.set(+$event)">
                 @for (c of context.available(); track c.id) {
@@ -94,6 +117,7 @@
           </button>
         </div>
         <ng-container [ngTemplateOutlet]="navigationLinks"></ng-container>
+        @if (auth.signedIn()) {
         <div class="nav-profile">
           <div class="nav-profile-person">
             <span class="profile-avatar" aria-hidden="true">{{ initials }}</span>
@@ -104,6 +128,22 @@
             <span>Log out</span>
           </button>
         </div>
+        } @else {
+          <div class="nav-profile guest-auth-panel">
+            <p class="guest-auth-eyebrow">WOLF TECH</p>
+            <p class="guest-auth-description">{{lang.t('Sign in to buy')}}</p>
+            <div class="guest-auth-actions">
+              <a routerLink="/register" class="guest-auth-button guest-auth-primary" (click)="closeMenu(false)">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>
+                <span>{{lang.t('Create account')}}</span>
+              </a>
+              <a routerLink="/login" class="guest-auth-button guest-auth-secondary" (click)="closeMenu(false)">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10 17l5-5-5-5M15 12H3M12 3h6a3 3 0 0 1 3 3v12a3 3 0 0 1-3 3h-6"/></svg>
+                <span>{{lang.t('Sign in')}}</span>
+              </a>
+            </div>
+          </div>
+        }
       </aside>
     </div>
   }
@@ -112,20 +152,20 @@
   <ng-template #navigationLinks>
     <nav class="app-nav" aria-label="Primary navigation">
       <p class="nav-section-title">OVERVIEW</p>
+      @if (auth.signedIn()) {
       <a routerLink="/dashboard" routerLinkActive="active" ariaCurrentWhenActive="page" (click)="closeMenu(false)">
         <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="3" width="7" height="9" rx="1.4"/><rect x="14" y="3" width="7" height="5" rx="1.4"/><rect x="14" y="12" width="7" height="9" rx="1.4"/><rect x="3" y="16" width="7" height="5" rx="1.4"/></svg>
         <span>Dashboard</span>
       </a>
-      @if (auth.canShop() || context.canManage()) {
-        <p class="nav-section-title">COMMERCE</p>
       }
-      @if (auth.canShop()) {
+      <p class="nav-section-title">COMMERCE</p>
+      @if (!auth.signedIn() || auth.canShop()) {
         <a routerLink="/shop" routerLinkActive="active" ariaCurrentWhenActive="page" (click)="closeMenu(false)">
           <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 10h18l-1.5-6h-15L3 10Z"/><path d="M5 10v10h14V10M9 20v-6h6v6"/></svg>
-          <span>Customer Store</span>
+          <span>{{lang.t('Customer Store')}}</span>
         </a>
       }
-      @if (auth.canShop() || context.canManage()) {
+      @if (auth.signedIn() && (auth.canShop() || context.canManage())) {
         <a routerLink="/orders" routerLinkActive="active" ariaCurrentWhenActive="page" (click)="closeMenu(false)">
           <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="5" y="3" width="14" height="18" rx="2"/><path d="M9 8h6M9 12h6M9 16h4"/></svg>
           <span>Orders &amp; Invoices</span>
@@ -137,6 +177,7 @@
           <span>Manage My Store</span>
         </a>
       }
+      @if (auth.signedIn()) {
       <p class="nav-section-title">REPAIRS</p>
       <a routerLink="/repairs" routerLinkActive="active" ariaCurrentWhenActive="page" (click)="closeMenu(false)">
         <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14.7 6.3a5 5 0 0 0-6.4 6.4L3 18a2.1 2.1 0 0 0 3 3l5.3-5.3a5 5 0 0 0 6.4-6.4l-3.2 3.2-3-3 3.2-3.2Z"/></svg>
@@ -159,6 +200,7 @@
         <span>{{ context.mine().length ? 'Support Inbox' : 'Support Chat' }}</span>
         </a>
       }
+      }
       <a routerLink="/about" routerLinkActive="active" ariaCurrentWhenActive="page" (click)="closeMenu(false)">
         <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 11v6M12 7h.01"/></svg>
         <span>About Us</span>
@@ -178,10 +220,12 @@
           <span class="nav-icon" aria-hidden="true">▥</span><span>IT Traffic Monitor</span>
         </a>
       }
+      @if (auth.signedIn()) {
       <a routerLink="/companies" routerLinkActive="active" ariaCurrentWhenActive="page" (click)="closeMenu(false)">
         <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="7" width="18" height="14" rx="2"/><path d="M8 7V5a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2M3 13h18"/></svg>
         <span>Companies</span>
       </a>
+      }
     </nav>
   </ng-template>
 </div>

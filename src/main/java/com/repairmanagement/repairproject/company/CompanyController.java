@@ -36,6 +36,24 @@ public class CompanyController {
         return companyService.listMembers(companyId, principal.getName());
     }
 
+    @PatchMapping("/{companyId}/members/{userId}/role")
+    public MemberView changeRole(@PathVariable Long companyId, @PathVariable Long userId,
+                                 @Valid @RequestBody ChangeMemberRoleRequest body, Principal principal) {
+        return companyService.changeMemberRole(companyId, userId, body, principal.getName());
+    }
+
+    @DeleteMapping("/{companyId}/members/{userId}")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void removeMember(@PathVariable Long companyId, @PathVariable Long userId, Principal principal) {
+        companyService.removeMember(companyId, userId, principal.getName());
+    }
+
+    @PostMapping("/{companyId}/members/{userId}/restore")
+    public MemberView restoreMember(@PathVariable Long companyId, @PathVariable Long userId,
+                                    @Valid @RequestBody ChangeMemberRoleRequest body, Principal principal) {
+        return companyService.restoreMember(companyId, userId, body, principal.getName());
+    }
+
     @PostMapping("/{companyId}/members")
     @ResponseStatus(HttpStatus.CREATED)
     public MemberView addMember(@PathVariable Long companyId,

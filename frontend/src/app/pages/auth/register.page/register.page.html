@@ -1,32 +1,64 @@
-<main class="auth-layout"><section class="auth-card">
-  <div class="logo">
-    <div style="justify-content:center;display:flex;width:100%;">
-        <img class="auth-wolf-logo" src="assets/wolflog-removebg-preview.png" alt="Wolf Tech Repair logo"/>
-      
+<main class="auth-layout auth-i18n" [attr.dir]="lang.language() === 'ar' ? 'rtl' : 'ltr'" [attr.lang]="lang.language()">
+  <section class="auth-card auth-modern">
+    <div class="auth-language" role="group" [attr.aria-label]="t('Language')">
+      <button type="button" [class.selected]="lang.language() === 'en'" [attr.aria-pressed]="lang.language() === 'en'" (click)="setLanguage('en')">English</button>
+      <button type="button" [class.selected]="lang.language() === 'ar'" [attr.aria-pressed]="lang.language() === 'ar'" (click)="setLanguage('ar')">العربية</button>
     </div>
-    <p style="text-align:center;width:100%;">Create Account</p>
-  </div>
-
-<form #registerForm="ngForm" (ngSubmit)="submit(registerForm)" novalidate>
-<label>Full name <input name="fullName" [(ngModel)]="fullName" #fullNameControl="ngModel" required maxlength="150" autocomplete="name" /></label>
-@if((submitted||fullNameControl.touched)&&fullNameControl.invalid){<p class="field-error">Please enter your full name.</p>}
-@if(fieldErrors()['fullName']){<p class="field-error">{{fieldErrors()['fullName']}}</p>}
-<label>Email <input name="email" [(ngModel)]="email" #emailControl="ngModel" type="email" required maxlength="190" autocomplete="email" /></label>
-@if((submitted||emailControl.touched)&&emailControl.invalid){<p class="field-error">Enter a valid email address.</p>}
-@if(fieldErrors()['email']){<p class="field-error">{{fieldErrors()['email']}}</p>}
-<label>Password <input name="password" [(ngModel)]="password" #passwordControl="ngModel" type="password" autocomplete="new-password" minlength="8" maxlength="72" required /></label>
-@if((submitted||passwordControl.touched)&&passwordControl.invalid){<p class="field-error">Password must contain at least 8 characters (maximum 72).</p>}
-@if(fieldErrors()['password']){<p class="field-error">{{fieldErrors()['password']}}</p>}
-<label>Confirm password <input name="confirmPassword" [(ngModel)]="confirmPassword" type="password" autocomplete="new-password" required /></label>
-@if((submitted || confirmPassword) && confirmPassword!==password){<p class="field-error">Passwords must match.</p>}
-<label>Register as
-  <select name="accountType" [(ngModel)]="accountType" required>
-    <option value="CLIENT">Client — shop and track repairs</option>
-    <!--<option value="OWNER">Owner — register and manage a company</option>-->
-  </select>
-</label>
-<label>Phone (optional) <input name="phone" [(ngModel)]="phone" maxlength="40" autocomplete="tel" /></label>
-@if(fieldErrors()['phone']){<p class="field-error">{{fieldErrors()['phone']}}</p>}
-@if(error()){<p class="error" role="alert">{{error()}}</p>}
-<button class="primary" [disabled]="busy() || registerForm.invalid || password!==confirmPassword">{{busy()?'Registering…':'Create account'}}</button></form>
-<p class="muted">Already registered? <a routerLink="/login">Sign in</a></p><p class="muted"><a routerLink="/about">About Wolf Tech Repair</a></p><p class="muted"><a routerLink="/">← Back to home</a></p></section></main>
+    <div class="logo auth-brand">
+      <img class="auth-wolf-logo" src="assets/wolflog-removebg-preview.png" alt="Wolf Tech Repair logo" />
+      <h1>{{t('Create Account')}}</h1>
+    </div>
+    <form #registerForm="ngForm" (ngSubmit)="submit(registerForm)" novalidate>
+      <label for="register-name">{{t('Full name')}}
+        <input id="register-name" name="fullName" [(ngModel)]="fullName" #fullNameControl="ngModel" required maxlength="150" autocomplete="name" />
+      </label>
+      @if ((submitted || fullNameControl.touched) && fullNameControl.invalid) { <p class="field-error">{{t('Please enter your full name.')}}</p> }
+      @if (fieldErrors()['fullName']) { <p class="field-error">{{t(fieldErrors()['fullName'])}}</p> }
+      <label for="register-email">{{t('Email')}}
+        <input id="register-email" name="email" [(ngModel)]="email" #emailControl="ngModel" type="email" required maxlength="190" autocomplete="email" dir="ltr" />
+      </label>
+      @if ((submitted || emailControl.touched) && emailControl.invalid) { <p class="field-error">{{t('Enter a valid email address.')}}</p> }
+      @if (fieldErrors()['email']) { <p class="field-error">{{t(fieldErrors()['email'])}}</p> }
+      <label for="register-password">{{t('Password')}}
+        <input id="register-password" name="password" [(ngModel)]="password" #passwordControl="ngModel" type="password" autocomplete="new-password" minlength="8" maxlength="72" required dir="ltr" />
+      </label>
+      @if ((submitted || passwordControl.touched) && passwordControl.invalid) { <p class="field-error">{{t('Password must contain at least 8 characters (maximum 72).')}}</p> }
+      @if (fieldErrors()['password']) { <p class="field-error">{{t(fieldErrors()['password'])}}</p> }
+      <label for="register-confirm">{{t('Confirm password')}}
+        <input id="register-confirm" name="confirmPassword" [(ngModel)]="confirmPassword" type="password" autocomplete="new-password" required dir="ltr" />
+      </label>
+      @if ((submitted || confirmPassword) && confirmPassword !== password) { <p class="field-error">{{t('Passwords must match.')}}</p> }
+      <label for="register-type">{{t('Register as')}}
+        <select id="register-type" name="accountType" [(ngModel)]="accountType" required>
+          <option value="CLIENT">{{t('Client — shop and track repairs')}}</option>
+        </select>
+      </label>
+      <label for="register-phone">{{t('Phone (optional)')}}
+        <input id="register-phone" name="phone" [(ngModel)]="phone" maxlength="40" autocomplete="tel" dir="ltr" />
+      </label>
+      @if (fieldErrors()['phone']) { <p class="field-error">{{t(fieldErrors()['phone'])}}</p> }
+      @if (error()) { <p class="error" role="alert">{{error()}}</p> }
+      <button class="primary auth-submit" type="submit" [disabled]="busy() || registerForm.invalid || password !== confirmPassword">{{busy() ? t('Registering…') : t('Create account')}}</button>
+    </form>
+    <nav class="auth-bottom-nav" aria-label="Account and site navigation">
+      <div class="auth-account-card">
+        <span class="auth-account-prompt">{{t('Already registered?')}}</span>
+        <a class="auth-account-action" routerLink="/login">
+          <span class="auth-account-icon"><svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M10 17l5-5-5-5M15 12H3"/><path d="M12 3h6a3 3 0 0 1 3 3v12a3 3 0 0 1-3 3h-6"/></svg></span>
+          <span>{{t('Sign in')}}</span>
+          <svg aria-hidden="true" class="auth-nav-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14m-6-6 6 6-6 6"/></svg>
+        </a>
+      </div>
+      <div class="auth-nav-grid">
+        <a class="auth-nav-tile" routerLink="/about">
+          <span class="auth-nav-icon"><svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 11v5M12 8h.01"/></svg></span>
+          <span>{{t('About Wolf Tech Repair')}}</span>
+        </a>
+        <a class="auth-nav-tile" routerLink="/">
+          <span class="auth-nav-icon"><svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="m3 10 9-7 9 7v10a1 1 0 0 1-1 1h-5v-7H9v7H4a1 1 0 0 1-1-1z"/></svg></span>
+          <span>{{t('← Back to home')}}</span>
+        </a>
+      </div>
+    </nav>
+  </section>
+</main>

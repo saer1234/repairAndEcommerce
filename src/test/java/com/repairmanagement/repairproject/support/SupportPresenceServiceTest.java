@@ -4,6 +4,7 @@ import com.repairmanagement.repairproject.company.*;
 import com.repairmanagement.repairproject.user.*;
 import java.util.Optional;
 import org.junit.jupiter.api.Test;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.http.HttpStatus;
 import org.springframework.test.util.ReflectionTestUtils;
 import org.springframework.web.server.ResponseStatusException;
@@ -16,7 +17,8 @@ class SupportPresenceServiceTest {
     CompanyMemberRepository membership = mock(CompanyMemberRepository.class);
     CompanyRepository companyRepository = mock(CompanyRepository.class);
     UserService users = mock(UserService.class);
-    SupportPresenceService service = new SupportPresenceService(repository, membership, companyRepository, users);
+    ApplicationEventPublisher events = mock(ApplicationEventPublisher.class);
+    SupportPresenceService service = new SupportPresenceService(repository, membership, companyRepository, users, events);
     Company shop = new Company("Shop", null, null, null, "USD");
     User employee = new User("Employee", "staff@example.test", "hash", null);
 
@@ -37,6 +39,24 @@ class SupportPresenceServiceTest {
         assertTrue(result.online());
         assertEquals(1L, result.availableAgents());
         verify(repository).saveAndFlush(any(SupportAgentPresence.class));
+    }
+
+    @Test void firstStaffHeartbeatNotifiesClients() {
+        when(membership.findByCompany_IdAndUser_IdAndActiveTrue(10L, 20L))
+            .thenReturn(Optional.of(new CompanyMember(shop, employee, MemberRole.EMPLOYEE)));
+        when(companyRepository.findById(10L)).thenReturn(Optional.of(shop));
+        when(repository.countAvailableAgents(eq(10L), any(), any())).thenReturn(0L, 1L);
+        service.heartbeat(10L, new SupportHeartbeatRequest("123e4567-e89b-12d3-a456-426614174000"), "staff@example.test");
+        verify(events).publishEvent(new SupportAvailabilityChanged(10L, 1L));
+    }
+
+    @Test void lastStaffLeavingNotifiesClients() {
+        when(membership.findByCompany_IdAndUser_IdAndActiveTrue(10L, 20L))
+            .thenReturn(Optional.of(new CompanyMember(shop, employee, MemberRole.EMPLOYEE)));
+        when(repository.countAvailableAgents(eq(10L), any(), any())).thenReturn(1L, 0L);
+        service.leave(10L, "123e4567-e89b-12d3-a456-426614174000", "staff@example.test");
+        verify(repository).deleteSession(eq(10L), eq(20L), anyString());
+        verify(events).publishEvent(new SupportAvailabilityChanged(10L, 0L));
     }
 
     @Test void employeeCannotActivatePresenceForOtherCompany() {

@@ -2,7 +2,7 @@
   <div>
     <p class="users-overline">PLATFORM ADMINISTRATION</p>
     <h1>All registered users</h1>
-    <p class="muted">Website accounts across all companies. Read-only access for the platform owner.</p>
+    <p class="muted">Website accounts across all companies. Platform administrator can edit account roles.</p>
   </div>
   <span class="users-total">{{ totalUsers() }} accounts</span>
 </section>
@@ -38,7 +38,18 @@
                 <td class="users-id">#{{ user.id }}</td>
                 <td><strong>{{ user.fullName }}</strong><small>{{ user.email }}</small></td>
                 <td>{{ user.phone || '—' }}</td>
-                <td><span class="users-role">{{ user.platformRole }}</span></td>
+                <td>
+                  @if(user.platformRole === 'SUPER_ADMIN') {<span class="users-role">SUPER_ADMIN (protected)</span>}
+                  @else {
+                    <select class="v22-platform-role" [ngModel]="user.platformRole"
+                      (ngModelChange)="changeRole(user, $event)" [name]="'platformRole'+user.id"
+                      [attr.aria-label]="'Role for ' + user.fullName">
+                      <option value="USER">User</option>
+                      <option value="OWNER">Owner</option>
+                      <option value="CLIENT">Client</option>
+                    </select>
+                  }
+                </td>
                 <td><span class="users-status" [class.users-inactive]="!user.active">
                   {{ user.active ? 'Active' : 'Inactive' }}
                 </span></td>

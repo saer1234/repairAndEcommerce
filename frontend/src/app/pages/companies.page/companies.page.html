@@ -51,6 +51,20 @@
       </select></label>
       <button class="primary">Add team member</button></form>
     <button class="secondary" type="button" (click)="members()">Load members</button>
-    @for(m of team();track m.id) {<p>{{m.fullName}} ({{m.email}}) — {{m.role}}</p>}
+    @for(m of team();track m.id) {
+      <div class="v22-member-row">
+        <span><strong>{{m.fullName}}</strong> <small>{{m.email}}</small></span>
+        @if(ctx.role() === 'OWNER' && m.userId !== auth.user()?.id) {
+          <label>Company role
+            <select [ngModel]="m.role" (ngModelChange)="changeMemberRole(m, $event)" [name]="'role'+m.id">
+              <option value="OWNER">Owner</option>
+              <option value="MANAGER">Manager</option>
+              <option value="EMPLOYEE">Employee</option>
+            </select>
+          </label>
+          <button class="secondary" type="button" (click)="removeMember(m)">Remove</button>
+        } @else {<span>{{m.role}}</span>}
+      </div>
+    }
   </div>
 }

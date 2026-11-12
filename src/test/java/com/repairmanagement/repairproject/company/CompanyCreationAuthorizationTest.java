@@ -14,7 +14,7 @@ class CompanyCreationAuthorizationTest {
     private final CompanyMemberRepository members = mock(CompanyMemberRepository.class);
     private final UserRepository users = mock(UserRepository.class);
     private final UserService userService = mock(UserService.class);
-    private final CompanyService service = new CompanyService(companies, members, users, userService);
+    private final CompanyService service = new CompanyService(companies, members, users, userService, mock(org.springframework.context.ApplicationEventPublisher.class));
     private final CompanyRequest body = new CompanyRequest("Demo", null, null, null, "EUR");
 
     @Test void clientCannotCreateCompany() {

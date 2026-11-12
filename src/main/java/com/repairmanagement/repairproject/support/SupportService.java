@@ -19,16 +19,18 @@ public class SupportService {
     private final CompanyMemberRepository memberships;
     private final UserService users;
     private final SupportPresenceService presence;
+    private final SupportClientConnections clients;
 
     public SupportService(SupportConversationRepository conversations, SupportMessageRepository messages,
                           CompanyRepository companies, CompanyMemberRepository memberships,
-                          UserService users, SupportPresenceService presence) {
+                          UserService users, SupportPresenceService presence, SupportClientConnections clients) {
         this.conversations = conversations;
         this.messages = messages;
         this.companies = companies;
         this.memberships = memberships;
         this.users = users;
         this.presence = presence;
+        this.clients = clients;
     }
 
     private User customer(String email) {
@@ -74,8 +76,15 @@ public class SupportService {
     public SupportConversationView start(Long companyId, String email) {
         User user = customer(email);
         requireAgentOnline(companyId);
+        requireClientOnline(companyId, user.getId());
         var existing = conversations.findByCompany_IdAndCustomer_Id(companyId, user.getId());
-        if (existing.isPresent()) return SupportConversationView.of(existing.get());
+        if (existing.isPresent()) {
+            // The customer is back and explicitly requested live chat.
+            // Reuse the original conversation, never create a duplicate.
+            var thread = existing.get();
+            if (thread.getStatus() == SupportStatus.CLOSED) thread.changeStatus(SupportStatus.OPEN);
+            return SupportConversationView.of(thread);
+        }
         Company company = companies.findById(companyId)
             .filter(c -> c.getStatus() == CompanyStatus.ACTIVE)
             .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Shop not found"));
@@ -109,14 +118,50 @@ public class SupportService {
     public SupportMessageView send(Long companyId, Long conversationId, SupportSendRequest request, String email) {
         SupportConversation thread = accessible(companyId, conversationId, email);
         User sender = users.currentUser(email);
-        // A live conversation may be read at any time, but only messaged when a shop agent is available.
+        // Keep history readable, but live messages require both sides online.
         requireAgentOnline(companyId);
+        requireClientOnline(companyId, thread.getCustomer().getId());
+        if (thread.getStatus() == SupportStatus.CLOSED && !sender.getId().equals(thread.getCustomer().getId()))
+            throw new ResponseStatusException(HttpStatus.CONFLICT, "Conversation is closed");
         String body = request.body().trim();
         if (body.isEmpty()) throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Message is empty");
         // Sending a message reopens a closed conversation.
         thread.changeStatus(SupportStatus.OPEN);
         SupportMessage saved = messages.saveAndFlush(new SupportMessage(thread, sender, body));
         return SupportMessageView.of(saved, thread);
+    }
+
+    private void requireClientOnline(Long companyId, Long customerId) {
+        if (!clients.isOnline(companyId, customerId))
+            throw new ResponseStatusException(HttpStatus.CONFLICT,
+                "Customer is offline. The live chat has ended.");
+    }
+
+    /**
+     * Called after an authenticated customer socket is registered. Reopen existing
+     * history automatically when the customer returns to the support page.
+     * Never creates a conversation and never permits staff to reopen an offline customer.
+     * The WebSocket hub broadcasts the updated status after this transaction commits.
+     */
+    @Transactional
+    public boolean reopenWhenClientOnline(Long companyId, Long customerId) {
+        if (!clients.isOnline(companyId, customerId)) return false;
+        var existing = conversations.findByCompany_IdAndCustomer_Id(companyId, customerId);
+        if (existing.isEmpty() || existing.get().getStatus() != SupportStatus.CLOSED) return false;
+        if (!clients.isOnline(companyId, customerId)) return false;
+        existing.get().changeStatus(SupportStatus.OPEN);
+        return true;
+    }
+
+    /** Close live chat after the customer's final WebSocket disconnects and the grace period passes. */
+    @Transactional
+    public boolean closeWhenClientOffline(Long companyId, Long customerId) {
+        if (clients.isOnline(companyId, customerId)) return false;
+        var existing = conversations.findByCompany_IdAndCustomer_Id(companyId, customerId);
+        if (existing.isEmpty() || existing.get().getStatus() != SupportStatus.OPEN) return false;
+        if (clients.isOnline(companyId, customerId)) return false;
+        existing.get().changeStatus(SupportStatus.CLOSED);
+        return true;
     }
 
     private void requireAgentOnline(Long companyId) {
@@ -136,6 +181,8 @@ public class SupportService {
             throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Only an owner or manager may close a conversation");
         SupportConversation thread = conversations.findByIdAndCompany_Id(conversationId, companyId)
             .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Conversation not found"));
+        if (request.status() == SupportStatus.OPEN)
+            requireClientOnline(companyId, thread.getCustomer().getId());
         thread.changeStatus(request.status());
         return SupportConversationView.of(thread);
     }

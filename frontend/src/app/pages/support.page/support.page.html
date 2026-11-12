@@ -137,7 +137,7 @@
                 </div>
               } @empty { <p class="support-placeholder">No messages in this conversation yet.</p> }
             </div>
-            @if (availability()?.online && (mode() === 'client' || availableForChat())) {
+            @if (conversation.status === 'OPEN' && selectedClientOnline() && availability()?.online && realtimeConnected() && (mode() === 'client' || availableForChat())) {
               <form class="support-compose" (ngSubmit)="send()">
                 <label for="supportMessage" class="sr-only">Support message</label>
                 <textarea id="supportMessage" name="supportMessage" [(ngModel)]="draft" maxlength="2000" rows="3"
@@ -146,19 +146,19 @@
                   <button type="submit" [disabled]="busy() || !draft.trim()">{{ busy() ? 'Sending…' : 'Send message' }}</button></div>
               </form>
             } @else {
-              <p class="support-readonly">Live messaging is paused. {{ mode() === 'staff' ? 'Choose “I am available for chat” to answer live.' : 'Send an offline message above and our team will get back to you.' }}</p>
+              <p class="support-readonly">{{ conversation.status === 'CLOSED' ? 'Live chat ended. The client left or a team member closed this conversation. Messages are saved.' : !selectedClientOnline() ? 'Client disconnected. Live messaging is paused until they reconnect.' : 'Live messaging is paused.' }} {{ mode() === 'staff' ? 'Choose “I am available for chat” to answer live.' : 'Send an offline message above and our team will get back to you.' }}</p>
             }
             @if (mode() === 'staff' && canClose()) {
               <div class="support-admin-actions">
                 <button type="button" (click)="setStatus(conversation.status === 'OPEN' ? 'CLOSED' : 'OPEN')" [disabled]="busy()">
-                  {{ conversation.status === 'OPEN' ? 'Close conversation' : 'Reopen conversation' }}
+                  {{ conversation.status === 'OPEN' ? 'Close conversation' : 'Reopen if client is online' }}
                 </button>
               </div>
             }
           } @else if (mode() === 'client' && availability()?.online) {
             <div class="support-no-thread"><span class="support-illustration" aria-hidden="true">💬</span>
               <h2>Talk with the shop</h2><p>A team member is available. Open a private live conversation.</p>
-              <button type="button" (click)="start()" [disabled]="busy()">{{ busy() ? 'Opening…' : 'Start live chat' }}</button>
+              <button type="button" (click)="start()" [disabled]="busy() || !realtimeConnected()">{{ busy() ? 'Opening…' : 'Start live chat' }}</button>
             </div>
           } @else if (mode() === 'staff') {
             <div class="support-no-thread"><h2>Select a conversation</h2><p>Past conversations remain available even when you are offline.</p></div>

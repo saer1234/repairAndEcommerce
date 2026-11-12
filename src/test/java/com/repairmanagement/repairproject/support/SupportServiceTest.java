@@ -21,7 +21,8 @@ class SupportServiceTest {
     CompanyMemberRepository memberships = mock(CompanyMemberRepository.class);
     UserService users = mock(UserService.class);
     SupportPresenceService presence = mock(SupportPresenceService.class);
-    SupportService service = new SupportService(conversations, messages, companies, memberships, users, presence);
+    SupportClientConnections clients = mock(SupportClientConnections.class);
+    SupportService service = new SupportService(conversations, messages, companies, memberships, users, presence, clients);
     Company shop;
     User client, otherClient, manager, employee;
     SupportConversation thread;
@@ -45,6 +46,7 @@ class SupportServiceTest {
         when(users.currentUser("employee@example.test")).thenReturn(employee);
         when(conversations.findByIdAndCompany_Id(200L, 1L)).thenReturn(Optional.of(thread));
         when(presence.onlineCount(1L)).thenReturn(1L);
+        when(clients.isOnline(1L, 10L)).thenReturn(true);
     }
 
     @Test void clientMayOpenOwnThread() {
@@ -81,13 +83,60 @@ class SupportServiceTest {
         assertEquals("CUSTOMER", result.getFirst().senderType());
     }
 
-    @Test void sendingMessageTrimsTextAndReopensClosedChat() {
+    @Test void clientCanReopenClosedChatWhenConnected() {
         thread.changeStatus(SupportStatus.CLOSED);
         when(messages.saveAndFlush(any(SupportMessage.class))).thenAnswer(i -> i.getArgument(0));
         var reply = service.send(1L, 200L, new SupportSendRequest("  Need help  "), "client@example.test");
         assertEquals("Need help", reply.body());
         assertEquals(SupportStatus.OPEN, thread.getStatus());
         assertEquals("CUSTOMER", reply.senderType());
+    }
+
+    @Test void staffCannotMessageDisconnectedClient() {
+        CompanyMember m = new CompanyMember(shop, manager, MemberRole.MANAGER);
+        when(memberships.findByCompany_IdAndUser_IdAndActiveTrue(1L, 12L))
+            .thenReturn(Optional.of(m));
+        when(clients.isOnline(1L, 10L)).thenReturn(false);
+        var ex = assertThrows(ResponseStatusException.class, () ->
+            service.send(1L, 200L, new SupportSendRequest("Hello"), "manager@example.test"));
+        assertEquals(HttpStatus.CONFLICT, ex.getStatusCode());
+        verifyNoInteractions(messages);
+    }
+
+    @Test void closingOfflineClientKeepsHistory() {
+        when(conversations.findByCompany_IdAndCustomer_Id(1L, 10L)).thenReturn(Optional.of(thread));
+        assertFalse(service.closeWhenClientOffline(1L, 10L)); // online
+        when(clients.isOnline(1L, 10L)).thenReturn(false);
+        assertTrue(service.closeWhenClientOffline(1L, 10L));
+        assertEquals(SupportStatus.CLOSED, thread.getStatus());
+        assertFalse(service.closeWhenClientOffline(1L, 10L));
+        verifyNoInteractions(messages);
+    }
+
+    @Test void reconnectAutomaticallyReopensExistingConversationWithoutNewMessages() {
+        thread.changeStatus(SupportStatus.CLOSED);
+        when(conversations.findByCompany_IdAndCustomer_Id(1L, 10L)).thenReturn(Optional.of(thread));
+        assertTrue(service.reopenWhenClientOnline(1L, 10L));
+        assertEquals(SupportStatus.OPEN, thread.getStatus());
+        assertFalse(service.reopenWhenClientOnline(1L, 10L));
+        verify(conversations, never()).saveAndFlush(any());
+        verifyNoInteractions(messages);
+    }
+
+    @Test void reconnectDoesNotReopenWhenCustomerIsOffline() {
+        thread.changeStatus(SupportStatus.CLOSED);
+        when(clients.isOnline(1L, 10L)).thenReturn(false);
+        assertFalse(service.reopenWhenClientOnline(1L, 10L));
+        assertEquals(SupportStatus.CLOSED, thread.getStatus());
+        verifyNoInteractions(conversations);
+    }
+
+    @Test void startingExistingConversationReopensWithoutDuplicatingIt() {
+        thread.changeStatus(SupportStatus.CLOSED);
+        when(conversations.findByCompany_IdAndCustomer_Id(1L, 10L)).thenReturn(Optional.of(thread));
+        var result = service.start(1L, "client@example.test");
+        assertEquals(SupportStatus.OPEN, result.status());
+        verify(conversations, never()).saveAndFlush(any());
     }
 
     @Test void existingLiveThreadCannotBeOpenedWhileShopOffline() {

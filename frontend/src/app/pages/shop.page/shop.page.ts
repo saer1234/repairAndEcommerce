@@ -1,7 +1,8 @@
 import { DecimalPipe } from '@angular/common';
+import { StoreLanguageService, StoreLanguage } from '../../core/services/store-language.service';
 import { Component, computed, effect, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { RouterLink } from '@angular/router';
+import { Router, RouterLink, ActivatedRoute } from '@angular/router';
 import { Api } from '../../api';
 import { AuthService } from '../../core/services/auth.service';
 import { CompanyContext } from '../../core/services/company-context';
@@ -19,8 +20,21 @@ import { WhishPaymentComponent } from '../../shared/components/whish-payment.com
   templateUrl: './shop.page.html',
 })
 export class ShopPage {
+  readonly lang=inject(StoreLanguageService);
+  t=(key:string)=>this.lang.t(key);
+  setLanguage(value:StoreLanguage){this.lang.setLanguage(value);}
   imageSrc=itemImageSrc;
  private api=inject(Api);ctx=inject(CompanyContext);auth=inject(AuthService);
+ private router=inject(Router);
+ private route=inject(ActivatedRoute);
+ private companyQueryApplied = false;
+ readonly isGuest = () => !this.auth.signedIn();
+ requestSignIn(): void {
+   const companyId = this.ctx.selected();
+   const returnUrl = companyId ? `/shop?companyId=${companyId}` : '/shop';
+   void this.router.navigate(['/login'], {queryParams: {returnUrl}});
+ }
+
  products=signal<Product[]>([]);
  selectedItem=signal<Product|null>(null);
  private detailTrigger: HTMLElement|null=null;
@@ -70,6 +84,7 @@ export class ShopPage {
    this.error.set('');
  }
  requestCheckout(){
+   if (this.isGuest()) {this.requestSignIn();return;}
    if(this.fulfillmentMethod==='DELIVERY') {
      if(!this.deliverySettings().deliveryEnabled){this.error.set('Delivery is unavailable for this shop.');return;}
      if(!this.validCoordinates() || !this.delivery.deliveryPhone.trim() || !this.delivery.streetAddress.trim() ||
@@ -84,17 +99,34 @@ export class ShopPage {
  confirmDelivery(){this.deliveryConfirmOpen.set(false);this.checkout();}
  delivery:CheckoutAddress={fulfillmentMethod:'PICKUP',deliveryPhone:'',streetAddress:'',city:'',postalCode:'',country:'',deliveryNotes:'',latitude:null,longitude:null};
  constructor(){this.delivery.deliveryPhone=this.auth.user()?.phone??'';
-  effect(()=>{if(this.ctx.selected() && this.auth.canShop()){this.resetPage();this.refresh();}});}
- refresh(){this.selectedItem.set(null);const id=this.ctx.selected();if(!id || !this.auth.canShop())return;if(this.lastOrder() && this.lastOrder()!.companyId!==id)this.lastOrder.set(null);this.error.set('');
+  effect(()=>{
+    const companies = this.ctx.available();
+    if (!this.ctx.loaded() || !companies.length) return;
+    if (!this.companyQueryApplied) {
+      this.companyQueryApplied = true;
+      const requestedCompany = Number(this.route.snapshot.queryParamMap.get('companyId'));
+      if (Number.isSafeInteger(requestedCompany) && requestedCompany > 0 &&
+          companies.some(c => c.id === requestedCompany) && this.ctx.selected() !== requestedCompany) {
+        this.ctx.selected.set(requestedCompany);
+        return;
+      }
+    }
+    if (this.ctx.selected()) {this.resetPage();this.refresh();}
+  });}
+
+ refresh(){this.selectedItem.set(null);const id=this.ctx.selected();if(!id)return;if(this.lastOrder() && this.lastOrder()!.companyId!==id)this.lastOrder.set(null);this.error.set('');
   this.api.get<Product[]>(`/companies/${id}/items`).subscribe({next:v=>{this.products.set(v);this.setPage(this.page());},error:()=>this.error.set('Unable to load items')});
   this.api.get<DeliverySettings>(`/catalog/companies/${id}/delivery-settings`).subscribe({
     next:s=>{this.deliverySettings.set(s);if(!s.deliveryEnabled)this.fulfillmentMethod='PICKUP';},
     error:()=>{this.deliverySettings.set({deliveryEnabled:false,deliveryFee:0,currencyCode:''});this.fulfillmentMethod='PICKUP';}
   });
-  this.api.get<Cart>(`/companies/${id}/cart`).subscribe({next:v=>this.useCart(v),error:()=>this.cart.set(null)});
+  if (this.auth.canShop()) {
+    this.api.get<Cart>(`/companies/${id}/cart`).subscribe({next:v=>this.useCart(v),error:()=>this.cart.set(null)});
+  } else this.cart.set(null);
  }
  private useCart(c:Cart){this.cart.set(c);this.quantityDraft=Object.fromEntries(c.items.map(i=>[i.itemId,i.quantity]));}
- add(p:Product){const id=this.ctx.selected();if(!id || !this.auth.canShop() || this.busy())return;
+ add(p:Product){if (this.isGuest()) {this.requestSignIn();return;}
+  const id=this.ctx.selected();if(!id || !this.auth.canShop() || this.busy())return;
   const current=this.cart()?.items.find(l=>l.itemId===p.id)?.quantity??0;
   this.busy.set(true);this.api.put<Cart>(`/companies/${id}/cart/items/${p.id}`,{quantity:current+1}).subscribe({next:v=>{this.useCart(v);this.message.set('Item added.');this.busy.set(false);},error:()=>{this.error.set('Could not add item (check stock).');this.busy.set(false);}});
  }

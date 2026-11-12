@@ -9,6 +9,8 @@ import java.time.Instant;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import org.springframework.http.HttpStatus;
+import org.springframework.transaction.event.TransactionPhase;
+import org.springframework.transaction.event.TransactionalEventListener;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 import org.springframework.web.server.ResponseStatusException;
@@ -28,20 +30,25 @@ import tools.jackson.databind.json.JsonMapper;
 @Component
 public class SupportWebSocketHub extends TextWebSocketHandler {
     private final ConcurrentHashMap<String, Connection> active = new ConcurrentHashMap<>();
+    // Ensures an old socket cannot delete a newer socket's presence lease.
+    private final ConcurrentHashMap<String, String> staffSessionOwners = new ConcurrentHashMap<>();
+    private final ConcurrentHashMap<String, String> socketStaffKeys = new ConcurrentHashMap<>();
     private final SupportService service;
     private final SupportPresenceService presence;
     private final UserService users;
     private final CompanyMemberRepository memberships;
     private final JsonMapper json;
+    private final SupportClientConnections clients;
 
     public SupportWebSocketHub(SupportService service, SupportPresenceService presence,
             UserService users, CompanyMemberRepository memberships,
-            JsonMapper json) {
+            JsonMapper json, SupportClientConnections clients) {
         this.service = service;
         this.presence = presence;
         this.users = users;
         this.memberships = memberships;
         this.json = json;
+        this.clients = clients;
     }
 
     @Override
@@ -52,8 +59,28 @@ public class SupportWebSocketHub extends TextWebSocketHandler {
             return;
         }
         session.setTextMessageSizeLimit(16384);
-        active.put(session.getId(), new Connection(session, ticket));
+        Connection connection = new Connection(session, ticket);
+        active.put(session.getId(), connection);
+        if (!allowed(connection)) {
+            close(session, CloseStatus.POLICY_VIOLATION);
+            return;
+        }
+        if (isClient(connection)) {
+            clients.joined(ticket.companyId(), ticket.userId(), session.getId());
+            clientPresenceChanged(ticket.companyId(), ticket.userId(), true);
+            // Reopening happens only after a verified, active client socket exists.
+            // It also handles a fresh page load and automatic WebSocket reconnect.
+            try {
+                if (service.reopenWhenClientOnline(ticket.companyId(), ticket.userId()))
+                    changed(ticket.companyId(), ticket.userId());
+            } catch (Exception ex) {
+                // Do not leave an untracked socket if database recovery fails.
+                close(session, CloseStatus.SERVER_ERROR);
+                return;
+            }
+        }
         send(session, Map.of("type", "connected", "companyId", ticket.companyId()));
+        send(session, availabilityEvent(ticket.companyId(), presence.onlineCount(ticket.companyId())));
     }
 
     @Override
@@ -68,6 +95,18 @@ public class SupportWebSocketHub extends TextWebSocketHandler {
             incoming = json.readValue(raw.getPayload(), Incoming.class);
         } catch (Exception ex) {
             sendError(session, null, "Invalid message format");
+            return;
+        }
+        if (incoming != null && "staff_presence_bind".equals(incoming.type())) {
+            if (!isStaff(connection) || incoming.sessionId() == null ||
+                !incoming.sessionId().matches("[a-fA-F0-9-]{36}")) {
+                close(session, CloseStatus.POLICY_VIOLATION);
+                return;
+            }
+            String key = connection.ticket().companyId() + ":" + connection.ticket().userId() + ":" + incoming.sessionId();
+            String previous = socketStaffKeys.put(session.getId(), key);
+            if (previous != null && !previous.equals(key)) staffSessionOwners.remove(previous, session.getId());
+            staffSessionOwners.put(key, session.getId());
             return;
         }
         if (incoming == null || !"send".equals(incoming.type())) {
@@ -100,10 +139,51 @@ public class SupportWebSocketHub extends TextWebSocketHandler {
         }
     }
 
+    /** Immediately terminate all open sockets belonging to a removed/changed staff member. */
+    public void revoke(Long companyId, Long userId) {
+        for (Connection connection : active.values()) {
+            if (companyId.equals(connection.ticket().companyId()) &&
+                userId.equals(connection.ticket().userId()))
+                close(connection.session(), CloseStatus.POLICY_VIOLATION);
+        }
+    }
+
     /** Notifies just the customer and current members of the specific shop. */
     public void messageAdded(Long companyId, Long customerId, SupportMessageView message) {
         broadcast(companyId, customerId, Map.of("type", "message", "companyId", companyId,
             "conversationId", message.conversationId(), "message", message));
+    }
+
+    /** Staff receive a real-time customer online/offline signal, independent of DB grace period. */
+    public void clientPresenceChanged(Long companyId, Long customerId, boolean online) {
+        Object event = Map.of("type", "customer_presence", "companyId", companyId,
+            "customerId", customerId, "online", online);
+        for (Connection connection : active.values()) {
+            if (!companyId.equals(connection.ticket().companyId()) || !isStaff(connection)) continue;
+            if (!allowed(connection)) {
+                close(connection.session(), CloseStatus.POLICY_VIOLATION);
+                continue;
+            }
+            try { send(connection.session(), event); }
+            catch (IOException ex) { close(connection.session(), CloseStatus.SERVER_ERROR); }
+        }
+    }
+
+    private Object availabilityEvent(Long companyId, long count) {
+        return Map.of("type", "staff_availability", "companyId", companyId,
+            "online", count > 0, "availableAgents", count);
+    }
+
+    /** Commit first, then deliver the new staff availability to all subscribed clients. */
+    @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
+    public void availabilityChanged(SupportAvailabilityChanged event) {
+        Object frame = availabilityEvent(event.companyId(), event.availableAgents());
+        for (Connection connection : active.values()) {
+            if (!event.companyId().equals(connection.ticket().companyId())) continue;
+            if (!allowed(connection)) { close(connection.session(), CloseStatus.POLICY_VIOLATION); continue; }
+            try { send(connection.session(), frame); }
+            catch (IOException ex) { close(connection.session(), CloseStatus.SERVER_ERROR); }
+        }
     }
 
     /** Used when an offline inquiry, conversation or status changes. */
@@ -115,7 +195,11 @@ public class SupportWebSocketHub extends TextWebSocketHandler {
         for (Connection connection : active.values()) {
             if (!companyId.equals(connection.ticket().companyId())) continue;
             boolean intended = customerId.equals(connection.ticket().userId()) || isStaff(connection);
-            if (!intended) continue;
+            if (!intended) {
+                // Former staff must not retain a connection until the next heartbeat.
+                if (!allowed(connection)) close(connection.session(), CloseStatus.POLICY_VIOLATION);
+                continue;
+            }
             if (!allowed(connection)) {
                 close(connection.session(), CloseStatus.POLICY_VIOLATION);
                 continue;
@@ -126,6 +210,13 @@ public class SupportWebSocketHub extends TextWebSocketHandler {
                 close(connection.session(), CloseStatus.SERVER_ERROR);
             }
         }
+    }
+
+    private boolean isClient(Connection conn) {
+        try {
+            return users.currentUser(conn.ticket().email()).getPlatformRole() ==
+                com.repairmanagement.repairproject.user.PlatformRole.CLIENT && !isStaff(conn);
+        } catch (Exception ex) { return false; }
     }
 
     private boolean isStaff(Connection conn) {
@@ -188,7 +279,36 @@ public class SupportWebSocketHub extends TextWebSocketHandler {
 
     @Override
     public void afterConnectionClosed(WebSocketSession session, CloseStatus status) {
-        active.remove(session.getId());
+        forget(session);
+    }
+
+    private void forget(WebSocketSession session) {
+        Connection removed = active.remove(session.getId());
+        String staffKey = socketStaffKeys.remove(session.getId());
+        if (removed != null && staffKey != null && staffSessionOwners.remove(staffKey, session.getId())) {
+            String sessionId = staffKey.substring(staffKey.lastIndexOf(':') + 1);
+            // A bound staff connection is the authoritative presence owner for this page.
+            try { presence.leaveDisconnected(removed.ticket().companyId(), removed.ticket().userId(), sessionId); }
+            catch (Exception ignored) { /* Heartbeat lease remains a fallback for database outages. */ }
+        }
+        if (removed != null && isClient(removed) &&
+                clients.left(removed.ticket().companyId(), removed.ticket().userId(), session.getId())) {
+            // Notify staff as soon as the LAST client tab leaves, not after the DB grace period.
+            clientPresenceChanged(removed.ticket().companyId(), removed.ticket().userId(), false);
+        }
+    }
+
+    @Scheduled(fixedDelay = 2000)
+    public void closeOfflineCustomers() {
+        for (var client : clients.expired()) {
+            if (clients.isOnline(client.companyId(), client.customerId())) continue;
+            try {
+                if (service.closeWhenClientOffline(client.companyId(), client.customerId()))
+                    changed(client.companyId(), client.customerId());
+            } catch (Exception ignored) {
+                // A transient database issue must not stop cleanup for other customers.
+            }
+        }
     }
 
     @Override
@@ -197,10 +317,10 @@ public class SupportWebSocketHub extends TextWebSocketHandler {
     }
 
     private void close(WebSocketSession session, CloseStatus status) {
-        active.remove(session.getId());
+        forget(session);
         try { if (session.isOpen()) session.close(status); } catch (IOException ignored) { }
     }
 
     private record Connection(WebSocketSession session, SupportWebSocketTickets.Ticket ticket) {}
-    public record Incoming(String type, String requestId, Long conversationId, String body) {}
+    public record Incoming(String type, String requestId, Long conversationId, String body, String sessionId) {}
 }

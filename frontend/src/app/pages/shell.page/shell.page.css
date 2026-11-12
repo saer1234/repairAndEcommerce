@@ -1,0 +1,76 @@
+
+/* V28 shared language toggle */
+.store-language-picker{display:flex;align-self:center;align-items:center;gap:3px;background:#eaf0f8;border:1px solid #cedaea;padding:4px;border-radius:12px;white-space:nowrap}
+.store-language-picker button{border:0;border-radius:8px;padding:8px 12px;background:transparent;color:#274064;font-size:.83rem;font-weight:800;cursor:pointer}
+.store-language-picker button.selected{background:#142d4e;color:#fff;box-shadow:0 2px 8px #17325125}
+.store-language-picker button:focus-visible{outline:3px solid #efb650;outline-offset:2px}
+
+
+/* V28.2: Polished, consistent guest authentication area. */
+.guest-auth-panel {
+  margin-top: auto;
+  padding: 21px 9px 3px;
+  border-top: 1px solid rgba(202, 218, 239, .16);
+  background: transparent;
+}
+.guest-auth-eyebrow {
+  margin: 0 0 8px;
+  color: #87cafa;
+  font-size: .64rem;
+  font-weight: 800;
+  letter-spacing: .14em;
+}
+.guest-auth-description {
+  margin: 0 0 15px;
+  color: #b9cbe4;
+  font-size: .78rem;
+  line-height: 1.55;
+}
+.guest-auth-actions { display: grid; gap: 10px; }
+.guest-auth-button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 9px;
+  min-height: 45px;
+  padding: 11px 12px;
+  border-radius: 12px;
+  border: 1px solid transparent;
+  font-size: .85rem;
+  font-weight: 750;
+  line-height: 1.2;
+  text-decoration: none;
+  text-align: center;
+  transition: transform .18s ease, background .18s ease, border-color .18s ease, box-shadow .18s ease;
+}
+.guest-auth-button svg { width: 17px; height: 17px; flex-shrink: 0; }
+.guest-auth-primary {
+  color: #fff;
+  background: linear-gradient(125deg, #327cf5, #1954cf);
+  box-shadow: 0 5px 15px rgba(34, 94, 230, .26);
+}
+.guest-auth-primary:hover { color: #fff; background: linear-gradient(125deg, #448bff, #2363dd); box-shadow: 0 7px 20px rgba(34, 94, 230, .34); transform: translateY(-1px); }
+.guest-auth-secondary { color: #e8f2ff; background: rgba(255,255,255,.065); border-color: rgba(194, 217, 246, .24); }
+.guest-auth-secondary:hover { color: #fff; background: rgba(255,255,255,.14); border-color: rgba(194, 217, 246, .48); }
+.guest-auth-button:focus-visible, .mobile-guest-signin:focus-visible { outline: 3px solid #77d8ea; outline-offset: 3px; }
+.mobile-guest-signin {
+  margin-inline-start: auto;
+  display: inline-flex;
+  justify-content: center;
+  align-items: center;
+  text-decoration: none;
+  white-space: nowrap;
+  color: #1856b8;
+  background: #eef4ff;
+  border: 1px solid #cadcf9;
+  border-radius: 11px;
+  padding: 9px 14px;
+  min-height: 41px;
+  font-size: .82rem;
+  font-weight: 750;
+}
+.mobile-guest-signin:hover { background: #e0ecff; }
+@media (max-width: 920px) {
+  .mobile-nav-drawer .guest-auth-panel { background: transparent; padding: 18px 6px 2px; }
+}
+@media (prefers-reduced-motion: reduce) { .guest-auth-button { transition: none; } .guest-auth-primary:hover { transform: none; } }

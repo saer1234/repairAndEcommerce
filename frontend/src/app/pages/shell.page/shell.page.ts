@@ -1,4 +1,5 @@
 import { Component, ElementRef, HostListener, inject, OnInit, signal, ViewChild } from '@angular/core';
+import { StoreLanguageService, StoreLanguage } from '../../core/services/store-language.service';
 import { AuthService } from '../../core/services/auth.service';
 import { CompanyContext } from '../../core/services/company-context';
 import { NgTemplateOutlet } from '@angular/common';
@@ -13,6 +14,8 @@ import { RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
 })
 export class ShellPage implements OnInit {
   readonly auth = inject(AuthService);
+  readonly lang = inject(StoreLanguageService);
+  setLanguage(value:StoreLanguage):void { this.lang.setLanguage(value); }
   readonly context = inject(CompanyContext);
   readonly error = signal('');
   readonly menuOpen = signal(false);
@@ -27,8 +30,9 @@ export class ShellPage implements OnInit {
   }
 
   ngOnInit(): void {
-    this.context.refresh(() => this.error.set('Unable to load companies. Check backend connection.'));
-    console.log(this.auth.user()?.platformRole);
+    const onError = () => this.error.set('Unable to load companies. Check backend connection.');
+    if (this.auth.signedIn()) this.context.refresh(onError);
+    else this.context.refreshPublic(onError);
   }
 
   openMenu(): void {

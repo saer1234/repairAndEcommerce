@@ -72,6 +72,7 @@ public class User {
     public String getPasswordHash() { return passwordHash; }
     public String getPhone() { return phone; }
     public PlatformRole getPlatformRole() { return platformRole; }
+    public void changePlatformRole(PlatformRole role) { this.platformRole = role; }
     public boolean isActive() { return active; }
     public LocalDateTime getCreatedAt() { return createdAt; }
 }

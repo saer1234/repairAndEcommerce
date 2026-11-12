@@ -1,171 +1,191 @@
-<section class="wt-store-brand" aria-label="Wolf Tech Repair showcase">
-  <img src="assets/wolftech-showcase.jpg" alt="Wolf Tech Repair phone repairs and mobile accessories" width="1600" height="700" loading="lazy" />
-  <div class="wt-store-brand-footer">
-    <div><span>WOLF TECH REPAIR</span><strong>Find the right accessories for your device.</strong></div>
-    <a routerLink="/repairs">Need a repair? <span aria-hidden="true">↗</span></a>
+<div class="storefront-v28" [attr.dir]="lang.language()==='ar' ? 'rtl' : 'ltr'" [attr.lang]="lang.language()">
+<section class="store-hero" aria-label="Wolf Tech store">
+  <div class="store-hero-copy">
+    <span class="store-kicker">✦ WOLF TECH REPAIR · {{t('Storefront')}}</span>
+    <h1>{{t('All your tech essentials in one place')}}</h1>
+    <p>{{t('Browse products without an account. Sign in only when you are ready to buy.')}}</p>
+    <div class="store-hero-actions">
+      <a class="store-cta" href="#store-products">{{t('Explore products')}} <span aria-hidden="true">↗</span></a>
+      <a class="store-cta-outline" [routerLink]="auth.signedIn() ? '/repairs' : '/login'">{{t('Need a repair?')}}</a>
+    </div>
+    <div class="store-trust-row"><span>✓ {{t('Browse without signing in')}}</span><span>✓ {{t('Device compatibility')}}</span><span>✓ {{t('Secure checkout')}}</span></div>
   </div>
+  <div class="store-hero-visual"><img src="assets/wolftech-showcase.jpg" alt="Wolf Tech device repair and accessories showcase" width="1600" height="700" fetchpriority="high" /></div>
 </section>
-<section class="page-heading"><div><h1>Customer store</h1><p class="muted">Set quantities, confirm the delivery address and drop a location pin before ordering.</p></div>
-<div class="table-actions"><a routerLink="/orders" class="button-link secondary">My orders & invoices</a><button type="button" (click)="refresh()" class="secondary">Refresh</button></div></section>
-@if(message()){<p class="success" role="status">{{message()}}</p>}
+<section class="page-heading storefront-heading" id="store-products"><div><h2>{{t('Customer store')}}</h2><p class="muted">{{t('Shop quality parts, accessories and devices with confidence.')}}</p></div>
+<div class="table-actions">@if(auth.canShop()){<a routerLink="/orders" class="button-link secondary">{{t('My orders & invoices')}}</a>}<button type="button" (click)="refresh()" class="secondary">{{t('Refresh')}}</button></div></section>
+@if(isGuest()){
+<section class="panel" role="status"><strong>{{t('Browse freely — no account needed.')}}</strong>
+  <p class="muted">{{t('Sign in as a customer when you want to add an item to your cart or place an order.')}}</p>
+  <button type="button" class="primary" (click)="requestSignIn()">{{t('Sign in to buy')}}</button>
+</section>
+}
+@if(auth.signedIn() && !auth.canShop() && ctx.loaded()) {
+<section class="panel" role="status">{{t('This account can browse the store, but only customer accounts without company memberships can purchase items.')}}</section>
+}
+@if(message()){<p class="success" role="status">{{t(message())}}</p>}
 @if(lastOrder();as completedOrder){<app-whish-payment [companyId]="completedOrder.companyId" [orderId]="completedOrder.id" />}
-@if(error()){<p class="error" role="alert">{{error()}}</p>}
+@if(error()){<p class="error" role="alert">{{t(error())}}</p>}
 <section class="panel verified-fit-finder" aria-label="Find an exact verified device fit">
-  <div class="panel-heading"><div><h2>Find verified fit</h2>
-    <p class="muted tiny">Choose your device type, brand and exact model. Only parts explicitly listed for that model will match.</p></div>
-    <button type="button" class="secondary" (click)="clearVerifiedFit()">Clear fit</button></div>
+  <div class="panel-heading"><div><h2>{{t('Find verified fit')}}</h2>
+    <p class="muted tiny">{{t('Choose your device type, brand and exact model. Only parts explicitly listed for that model will match.')}}</p></div>
+    <button type="button" class="secondary" (click)="clearVerifiedFit()">{{t('Clear fit')}}</button></div>
   <div class="fit-fields">
-    <label>Device type
+    <label>{{t('Device type')}}
       <select [ngModel]="fitDeviceType" (ngModelChange)="chooseFitType($event)" aria-label="Fit device type">
-        <option value="ALL">Choose type</option>
+        <option value="ALL">{{t('Choose type')}}</option>
         @for(type of fitTypes();track type){<option [value]="type">{{type}}</option>}
       </select>
     </label>
-    <label>Device brand
+    <label>{{t('Device brand')}}
       <select [ngModel]="fitDeviceBrand" (ngModelChange)="chooseFitBrand($event)" [disabled]="fitDeviceType==='ALL'" aria-label="Fit device brand">
-        <option value="ALL">Choose brand</option>
+        <option value="ALL">{{t('Choose brand')}}</option>
         @for(brand of fitBrands();track brand){<option [value]="brand">{{brand}}</option>}
       </select>
     </label>
-    <label>Exact device model
+    <label>{{t('Exact device model')}}
       <input type="search" list="customer-fit-models" [ngModel]="fitDeviceModel" (ngModelChange)="fitDeviceModel=$event;resetPage()" [disabled]="fitDeviceBrand==='ALL'"
-        placeholder="e.g. Galaxy S24" aria-label="Exact model for verified fit" />
+        placeholder="Galaxy S24" aria-label="Exact model for verified fit" />
       <datalist id="customer-fit-models">@for(model of fitModels();track model){<option [value]="model"></option>}</datalist>
     </label>
   </div>
-  @if(fitActive()) {<p class="verified-fit-result" role="status">{{filteredProducts().length}} matching product(s) recorded for {{fitDeviceBrand}} {{fitDeviceModel}}.</p>}
-  @else {<p class="muted tiny">Exact fit requires all three fields. General product category or a wildcard does not count as verified.</p>}
+  @if(fitActive()) {<p class="verified-fit-result" role="status">{{filteredProducts().length}} {{t('matching product(s) recorded for')}} {{fitDeviceBrand}} {{fitDeviceModel}}.</p>}
+  @else {<p class="muted tiny">{{t('Exact fit requires all three fields. General product category or a wildcard does not count as verified.')}}</p>}
 </section>
 <section class="store-filters panel" aria-label="Search and filter products">
-  <label>Search products
-    <input type="search" [ngModel]="searchText" (ngModelChange)="searchText=$event;resetPage()" placeholder="Search by name, SKU, brand or compatible model" aria-label="Search customer store" />
+  <label>{{t('Search products')}}
+    <input type="search" [ngModel]="searchText" (ngModelChange)="searchText=$event;resetPage()" [placeholder]="t('Search by name, SKU, brand or compatible model')" aria-label="Search customer store" />
   </label>
-  <label>Device type
+  <label>{{t('Device type')}}
     <select [ngModel]="selectedDeviceType" (ngModelChange)="selectedDeviceType=$event;selectedBrand='ALL';resetPage()" aria-label="Filter by device type">
-      <option value="ALL">All device types</option>
+      <option value="ALL">{{t('All device types')}}</option>
       @for(type of deviceTypes();track type){<option [value]="type">{{type}}</option>}
     </select>
   </label>
-  <label>Brand
+  <label>{{t('Brand')}}
     <select [ngModel]="selectedBrand" (ngModelChange)="selectedBrand=$event;resetPage()" aria-label="Filter by brand">
-      <option value="ALL">All brands</option>
+      <option value="ALL">{{t('All brands')}}</option>
       @for(brand of brands();track brand){<option [value]="brand">{{brand}}</option>}
     </select>
   </label>
-  <label>Component category
+  <label>{{t('Component category')}}
     <select [ngModel]="selectedCategory" (ngModelChange)="selectedCategory=$event;resetPage()" aria-label="Filter store by component category">
-      <option value="ALL">All components</option>
+      <option value="ALL">{{t('All components')}}</option>
       @for(category of categories();track category){<option [value]="category">{{category}}</option>}
     </select>
   </label>
-  <div class="muted tiny filter-count">{{filteredProducts().length}} of {{products().length}} items</div>
+  <div class="muted tiny filter-count">{{filteredProducts().length}} {{t('of')}} {{products().length}} {{t('items')}}</div>
 </section>
 @if(filteredProducts().length){
- <div class="pagination-toolbar" role="group" aria-label="Customer store pagination">
- <span>Showing {{pageStart()}}–{{pageEnd()}} of {{filteredProducts().length}} products</span>
- <label>Per page <select [ngModel]="pageSize()" (ngModelChange)="setPageSize($event)"><option [ngValue]="8">8</option><option [ngValue]="12">12</option><option [ngValue]="24">24</option></select></label>
- <div class="pagination-actions"><button type="button" class="secondary" (click)="setPage(page()-1)" [disabled]="page()===1">Previous</button>
- <span>Page {{page()}} of {{pageCount()}}</span>
- <button type="button" class="secondary" (click)="setPage(page()+1)" [disabled]="page()>=pageCount()">Next</button></div>
- <div class="view-toggle" role="group" aria-label="Product display mode"><button type="button" class="secondary" [attr.aria-pressed]="viewMode()==='cards'" (click)="viewMode.set('cards')">Cards</button><button type="button" class="secondary" [attr.aria-pressed]="viewMode()==='table'" (click)="viewMode.set('table')">Table</button></div>
+ <div class="pagination-toolbar" role="group" aria-label="Store pagination">
+ <span>{{t('Showing')}} {{pageStart()}}–{{pageEnd()}} {{t('of')}} {{filteredProducts().length}} {{t('products')}}</span>
+ <label>{{t('Per page')}} <select [ngModel]="pageSize()" (ngModelChange)="setPageSize($event)"><option [ngValue]="8">8</option><option [ngValue]="12">12</option><option [ngValue]="24">24</option></select></label>
+ <div class="pagination-actions"><button type="button" class="secondary" (click)="setPage(page()-1)" [disabled]="page()===1">{{t('Previous')}}</button>
+ <span>{{t('Page')}} {{page()}} {{t('of')}} {{pageCount()}}</span>
+ <button type="button" class="secondary" (click)="setPage(page()+1)" [disabled]="page()>=pageCount()">{{t('Next')}}</button></div>
+ <div class="view-toggle" role="group" aria-label="Product display mode"><button type="button" class="secondary" [attr.aria-pressed]="viewMode()==='cards'" (click)="viewMode.set('cards')">{{t('Cards')}}</button><button type="button" class="secondary" [attr.aria-pressed]="viewMode()==='table'" (click)="viewMode.set('table')">{{t('Table')}}</button></div>
  </div>
 }
 @if(viewMode()==='cards') {
-<div class="product-grid">
+<div class="product-grid storefront-product-grid">
  @for(item of pagedProducts();track item.id){<article class="product-card">
  @if(item.imageUrl){<img class="store-product-image" [src]="imageSrc(item.imageUrl)" [alt]="item.name" loading="lazy" />}
- @else{<div class="store-product-placeholder">No product photo</div>}
+ @else{<div class="store-product-placeholder">{{t('No product photo')}}</div>}
  <span class="chip product-category">{{item.deviceType}} → {{item.deviceBrand}} · {{itemCategory(item)}}</span>
- @if(fitActive() && itemVerified(item)){<span class="verified-fit-label">✓ Exact fit recorded: {{fitDeviceBrand}} {{fitDeviceModel}}</span>}
- @if(item.compatibleDevices.length){<div class="muted tiny">Recorded compatibility:
+ @if(fitActive() && itemVerified(item)){<span class="verified-fit-label">✓ {{t('Exact fit recorded')}}: {{fitDeviceBrand}} {{fitDeviceModel}}</span>}
+ @if(item.compatibleDevices.length){<div class="muted tiny">{{t('Recorded compatibility:')}}
    @for(fit of item.compatibleDevices;track $index){<span class="fit-chip">{{fit.deviceBrand}} {{fit.deviceModel}}</span>}
- </div>} @else {<p class="muted tiny">Compatibility not yet verified</p>}<h3>{{item.name}}</h3><p class="muted tiny">{{item.sku}}</p><p class="muted item-description-teaser">{{item.description || 'No description added yet.'}}</p>
- <button type="button" class="secondary item-detail-button" (click)="openDetails(item)" [attr.aria-label]="'View details of '+item.name">View full description</button>
- <div class="product-bottom"><div class="offer-price">@if(item.discountPercent){<span class="offer-badge">-{{item.discountPercent}}% OFF</span><span class="offer-old-price">{{item.sellingPrice | number:'1.2-2'}} {{item.currencyCode}}</span>}
-    <strong>{{item.effectivePrice | number:'1.2-2'}} {{item.currencyCode}}</strong></div><button type="button" class="secondary" [disabled]="!item.inStock" (click)="add(item)">{{item.inStock?'Add to cart':'Out of stock'}}</button></div>
+ </div>} @else {<p class="muted tiny">{{t('Compatibility not yet verified')}}</p>}<h3>{{item.name}}</h3><p class="muted tiny">{{item.sku}}</p><p class="muted item-description-teaser">{{item.description || t('No description added yet.')}}</p>
+ <button type="button" class="secondary item-detail-button" (click)="openDetails(item)" [attr.aria-label]="'View details of '+item.name">{{t('View full description')}}</button>
+ <div class="product-bottom"><div class="offer-price">@if(item.discountPercent){<span class="offer-badge">-{{item.discountPercent}}% {{t('OFF')}}</span><span class="offer-old-price">{{item.sellingPrice | number:'1.2-2'}} {{item.currencyCode}}</span>}
+    <strong>{{item.effectivePrice | number:'1.2-2'}} {{item.currencyCode}}</strong></div><button type="button" class="secondary" [disabled]="!item.inStock || (auth.signedIn() && !auth.canShop())" (click)="add(item)">{{item.inStock ? (isGuest() ? t('Sign in to buy') : (auth.canShop() ? t('Add to cart') : t('Customer accounts only'))) : t('Out of stock')}}</button></div>
  </article>}
 </div>
 } @else {
- <div class="panel table-scroll"><table class="customer-products-table"><thead><tr><th>Product</th><th>Device / Brand</th><th>Price</th><th>Stock</th><th></th></tr></thead><tbody>
+ <div class="panel table-scroll"><table class="customer-products-table"><thead><tr><th>{{t('Product')}}</th><th>{{t('Device / Brand')}}</th><th>{{t('Price')}}</th><th>{{t('Stock')}}</th><th></th></tr></thead><tbody>
  @for(item of pagedProducts();track item.id){<tr>
  <td><div class="inventory-item-name">@if(item.imageUrl){<img class="item-thumbnail" [src]="imageSrc(item.imageUrl)" [alt]="item.name" loading="lazy" />}<div><strong>{{item.name}}</strong><p class="muted tiny">{{item.sku}}</p></div></div></td>
  <td>{{item.deviceType}} / {{item.deviceBrand}} · {{itemCategory(item)}}
- @if(fitActive() && itemVerified(item)){<span class="verified-fit-label">✓ Exact fit recorded</span>}</td>
+ @if(fitActive() && itemVerified(item)){<span class="verified-fit-label">✓ {{t('Exact fit recorded')}}</span>}</td>
  <td>@if(item.discountPercent){<span class="offer-badge">-{{item.discountPercent}}%</span><span class="offer-old-price">{{item.sellingPrice | number:'1.2-2'}}</span>}
   <strong>{{item.effectivePrice | number:'1.2-2'}} {{item.currencyCode}}</strong></td>
- <td>{{item.inStock?'Available':'Out of stock'}}</td>
- <td><div class="table-actions"><button type="button" class="secondary" (click)="openDetails(item)">Details</button><button type="button" class="secondary" [disabled]="!item.inStock" (click)="add(item)">Add to cart</button></div></td>
+ <td>{{item.inStock?t('Available'):t('Out of stock')}}</td>
+ <td><div class="table-actions"><button type="button" class="secondary" (click)="openDetails(item)">{{t('Details')}}</button><button type="button" class="secondary" [disabled]="!item.inStock || (auth.signedIn() && !auth.canShop())" (click)="add(item)">{{isGuest() ? t('Sign in to buy') : (auth.canShop() ? t('Add to cart') : t('Customer accounts only'))}}</button></div></td>
  </tr>}</tbody></table></div>
 }
-@if(!products().length){<p class="muted">No items listed for this company.</p>}
-@if(products().length && !filteredProducts().length){<p class="panel muted" role="status">{{fitActive()?'No explicitly recorded fit for that exact model. Do not assume a different model will fit.':'No matching products. Try a different search or category.'}}</p>}
+@if(!products().length){<p class="muted">{{t('No items listed for this company.')}}</p>}
+@if(products().length && !filteredProducts().length){<p class="panel muted" role="status">{{fitActive()?t('No explicitly recorded fit for that exact model. Do not assume a different model will fit.'):t('No matching products. Try a different search or category.')}}</p>}
 @if(selectedItem(); as item){
  <app-item-detail [item]="item" (close)="closeDetails()" />
 }
-<section class="panel"><h3>Review your cart</h3>
+@if(auth.canShop()) {
+<section class="panel"><h3>{{t('Review your cart')}}</h3>
 @if(cart();as c){
  @for(line of c.items;track line.itemId){<div class="cart-line checkout-cart-line">
- <div><strong>{{line.name}}</strong><div class="muted tiny">@if(line.discountPercent){<span class="offer-badge">-{{line.discountPercent}}%</span> <span class="offer-old-price">{{line.originalUnitPrice | number:'1.2-2'}}</span>} {{line.unitSellingPrice | number:'1.2-2'}} {{c.currencyCode}} each</div></div>
- <label class="qty-control">Quantity
+ <div><strong>{{line.name}}</strong><div class="muted tiny">@if(line.discountPercent){<span class="offer-badge">-{{line.discountPercent}}%</span> <span class="offer-old-price">{{line.originalUnitPrice | number:'1.2-2'}}</span>} {{line.unitSellingPrice | number:'1.2-2'}} {{c.currencyCode}} {{t('each')}}</div></div>
+ <label class="qty-control">{{t('Quantity')}}
  <input type="number" min="1" max="100000" step="1" [ngModel]="quantityDraft[line.itemId] ?? line.quantity" (ngModelChange)="quantityDraft[line.itemId]=$event" [attr.aria-label]="'Quantity for '+line.name" />
- </label><button type="button" class="secondary" [disabled]="busy()" (click)="updateQuantity(line.itemId)">Update</button>
- <span>{{line.lineTotal | number:'1.2-2'}} {{c.currencyCode}}</span><button type="button" class="secondary" [disabled]="busy()" (click)="remove(line.itemId)">Remove</button></div>}
- <p class="checkout-total"><strong>Total: {{c.estimatedTotal | number:'1.2-2'}} {{c.currencyCode}}</strong></p>
+ </label><button type="button" class="secondary" [disabled]="busy()" (click)="updateQuantity(line.itemId)">{{t('Update')}}</button>
+ <span>{{line.lineTotal | number:'1.2-2'}} {{c.currencyCode}}</span><button type="button" class="secondary" [disabled]="busy()" (click)="remove(line.itemId)">{{t('Remove')}}</button></div>}
+ <p class="checkout-total"><strong>{{t('Total:')}} {{c.estimatedTotal | number:'1.2-2'}} {{c.currencyCode}}</strong></p>
  @if(c.items.length){
  <form #deliveryForm="ngForm" (ngSubmit)="requestCheckout()" class="delivery-form">
-  <h3>Fulfillment</h3><p class="muted tiny">Choose store pickup (free), or delivery when offered by the shop.</p>
+  <h3>{{t('Fulfillment')}}</h3><p class="muted tiny">{{t('Choose store pickup (free), or delivery when offered by the shop.')}}</p>
   <div class="fulfillment-options" role="radiogroup" aria-label="Order fulfillment">
-    <label><input type="radio" name="fulfillment" [ngModel]="fulfillmentMethod" value="PICKUP" (ngModelChange)="chooseFulfillment('PICKUP')" /> Pick up from store · Free</label>
+    <label><input type="radio" name="fulfillment" [ngModel]="fulfillmentMethod" value="PICKUP" (ngModelChange)="chooseFulfillment('PICKUP')" /> {{t('Pick up from store · Free')}}</label>
     @if(deliverySettings().deliveryEnabled){
-    <label><input type="radio" name="fulfillment" [ngModel]="fulfillmentMethod" value="DELIVERY" (ngModelChange)="chooseFulfillment('DELIVERY')" /> Deliver to my address · +{{deliverySettings().deliveryFee | number:'1.2-2'}} {{c.currencyCode}}</label>
+    <label><input type="radio" name="fulfillment" [ngModel]="fulfillmentMethod" value="DELIVERY" (ngModelChange)="chooseFulfillment('DELIVERY')" /> {{t('Deliver to my address')}} · +{{deliverySettings().deliveryFee | number:'1.2-2'}} {{c.currencyCode}}</label>
     }
   </div>
   @if(fulfillmentMethod==='DELIVERY'){
-  <h3>Delivery details</h3><p class="muted tiny">Your account identity is used as the customer name. Set an accurate map pin.</p>
-  <div class="field-pair"><label>Delivery phone
+  <h3>{{t('Delivery details')}}</h3><p class="muted tiny">{{t('Your account identity is used as the customer name. Set an accurate map pin.')}}</p>
+  <div class="field-pair"><label>{{t('Delivery phone')}}
    <input name="phone" [(ngModel)]="delivery.deliveryPhone" required maxlength="40" autocomplete="tel" />
-  </label><label>Country
+  </label><label>{{t('Country')}}
    <input name="country" [(ngModel)]="delivery.country" required maxlength="100" autocomplete="country-name" />
   </label></div>
-  <label>Street address and building
+  <label>{{t('Street address and building')}}
     <input name="street" [(ngModel)]="delivery.streetAddress" required maxlength="255" autocomplete="street-address" />
   </label>
-  <div class="field-pair"><label>City
+  <div class="field-pair"><label>{{t('City')}}
    <input name="city" [(ngModel)]="delivery.city" required maxlength="120" autocomplete="address-level2" />
-  </label><label>Postal code (optional)
+  </label><label>{{t('Postal code (optional)')}}
    <input name="postalCode" [(ngModel)]="delivery.postalCode" maxlength="24" autocomplete="postal-code" />
   </label></div>
-  <label>Delivery instructions (optional)
+  <label>{{t('Delivery instructions (optional)')}}
    <textarea name="notes" [(ngModel)]="delivery.deliveryNotes" maxlength="500" rows="2" placeholder="Floor, entry instructions, etc."></textarea>
   </label>
-  <h4>Delivery map location <span class="muted tiny">(required pin)</span></h4>
-  <button type="button" class="secondary" [disabled]="locating()" (click)="useCurrentLocation()">{{locating()?'Locating…':'Use my current location'}}</button>
-  <p class="muted tiny">Allow location access on HTTPS or localhost, or enter coordinates from your map app. Check the pin before ordering.</p>
-  <div class="field-pair"><label>Latitude
+  <h4>{{t('Delivery map location')}} <span class="muted tiny">{{t('(required pin)')}}</span></h4>
+  <button type="button" class="secondary" [disabled]="locating()" (click)="useCurrentLocation()">{{locating()?t('Locating…'):t('Use my current location')}}</button>
+  <p class="muted tiny">{{t('Allow location access on HTTPS or localhost, or enter coordinates from your map app. Check the pin before ordering.')}}</p>
+  <div class="field-pair"><label>{{t('Latitude')}}
    <input type="number" name="latitude" [(ngModel)]="delivery.latitude" required min="-90" max="90" step="any" placeholder="e.g. 33.8938" />
-  </label><label>Longitude
+  </label><label>{{t('Longitude')}}
    <input type="number" name="longitude" [(ngModel)]="delivery.longitude" required min="-180" max="180" step="any" placeholder="e.g. 35.5018" />
   </label></div>
-  @if(validCoordinates()) {<a [href]="mapUrl()" target="_blank" rel="noopener noreferrer">Verify pin on OpenStreetMap ↗</a>}
+  @if(validCoordinates()) {<a [href]="mapUrl()" target="_blank" rel="noopener noreferrer">{{t('Verify pin on OpenStreetMap')}} ↗</a>}
   }
-  <p class="checkout-total"><strong>Items: {{c.estimatedTotal | number:'1.2-2'}} {{c.currencyCode}}</strong></p>
-  @if(fulfillmentMethod==='DELIVERY') {<p>Delivery fee: {{deliverySettings().deliveryFee | number:'1.2-2'}} {{c.currencyCode}}</p>}
-  <p class="checkout-total"><strong>Payable total: {{payableTotal() | number:'1.2-2'}} {{c.currencyCode}}</strong></p>
-  <div class="checkout-actions"><button class="primary" type="submit" [disabled]="busy() || deliveryForm.invalid">{{busy()?'Submitting…':'Place order'}}</button><p class="muted tiny">Stock and prices are checked again when you submit. The final quantities are the saved cart quantities.</p></div>
+  <p class="checkout-total"><strong>{{t('Items:')}} {{c.estimatedTotal | number:'1.2-2'}} {{c.currencyCode}}</strong></p>
+  @if(fulfillmentMethod==='DELIVERY') {<p>{{t('Delivery fee:')}} {{deliverySettings().deliveryFee | number:'1.2-2'}} {{c.currencyCode}}</p>}
+  <p class="checkout-total"><strong>{{t('Payable total:')}} {{payableTotal() | number:'1.2-2'}} {{c.currencyCode}}</strong></p>
+  <div class="checkout-actions"><button class="primary" type="submit" [disabled]="busy() || deliveryForm.invalid">{{busy()?t('Submitting…'):t('Place order')}}</button><p class="muted tiny">{{t('Stock and prices are checked again when you submit. The final quantities are the saved cart quantities.')}}</p></div>
  </form>}
- }@else{<p class="muted">Your cart is empty or has not been loaded yet.</p>}
+ }@else{<p class="muted">{{t('Your cart is empty or has not been loaded yet.')}}</p>}
 </section>
+}
 @if(deliveryConfirmOpen()){
   <div class="wolf-modal-backdrop" role="presentation">
     <section class="wolf-modal" role="alertdialog" aria-modal="true" aria-labelledby="delivery-popup-title"
       aria-describedby="delivery-popup-description">
-      <h2 id="delivery-popup-title">Confirm delivery fee</h2>
-      <p id="delivery-popup-description">You selected delivery instead of free store pickup.
-      The shop charges <strong>{{deliverySettings().deliveryFee | number:'1.2-2'}} {{deliverySettings().currencyCode}}</strong> for delivery.</p>
-      <p><strong>Total to pay: {{payableTotal() | number:'1.2-2'}} {{deliverySettings().currencyCode}}</strong></p>
-      <p class="muted tiny">Your order will use the address and location pin you entered.</p>
-      <div class="table-actions"><button type="button" class="secondary" (click)="cancelDelivery()">Go back</button>
-      <button type="button" class="primary" [disabled]="busy()" (click)="confirmDelivery()">Confirm delivery and place order</button></div>
+      <h2 id="delivery-popup-title">{{t('Confirm delivery fee')}}</h2>
+      <p id="delivery-popup-description">{{t('You selected delivery instead of free store pickup.')}}
+      {{t('The shop charges')}} <strong>{{deliverySettings().deliveryFee | number:'1.2-2'}} {{deliverySettings().currencyCode}}</strong> {{t('for delivery.')}}</p>
+      <p><strong>{{t('Total to pay:')}} {{payableTotal() | number:'1.2-2'}} {{deliverySettings().currencyCode}}</strong></p>
+      <p class="muted tiny">{{t('Your order will use the address and location pin you entered.')}}</p>
+      <div class="table-actions"><button type="button" class="secondary" (click)="cancelDelivery()">{{t('Go back')}}</button>
+      <button type="button" class="primary" [disabled]="busy()" (click)="confirmDelivery()">{{t('Confirm delivery and place order')}}</button></div>
     </section>
   </div>
 }
+
+</div>

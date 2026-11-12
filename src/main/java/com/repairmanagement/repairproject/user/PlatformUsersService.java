@@ -9,15 +9,34 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.util.Locale;
+import com.repairmanagement.repairproject.company.CompanyMemberRepository;
 
 @Service
 public class PlatformUsersService {
     private final UserRepository users;
     private final UserService userService;
+    private final CompanyMemberRepository memberships;
 
-    public PlatformUsersService(UserRepository users, UserService userService) {
+    public PlatformUsersService(UserRepository users, UserService userService, CompanyMemberRepository memberships) {
         this.users = users;
         this.userService = userService;
+        this.memberships = memberships;
+    }
+
+    @Transactional
+    public PlatformUserView changeRole(String authenticatedEmail, Long targetId, ChangePlatformRoleRequest request) {
+        User caller = userService.currentUser(authenticatedEmail);
+        if (caller.getPlatformRole() != PlatformRole.SUPER_ADMIN)
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Platform administrator required");
+        User target = users.findById(targetId).orElseThrow(() ->
+            new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found"));
+        if (caller.getId().equals(targetId) || target.getPlatformRole() == PlatformRole.SUPER_ADMIN ||
+            request.role() == null || request.role() == PlatformRole.SUPER_ADMIN)
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Cannot change super-admin privileges here");
+        if (request.role() == PlatformRole.CLIENT && memberships.existsByUser_IdAndActiveTrue(targetId))
+            throw new ResponseStatusException(HttpStatus.CONFLICT, "Remove company memberships before making a client account");
+        target.changePlatformRole(request.role());
+        return PlatformUserView.of(target);
     }
 
     @Transactional(readOnly = true)

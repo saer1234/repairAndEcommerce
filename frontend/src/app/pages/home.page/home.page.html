@@ -30,7 +30,7 @@
         </div>
         <div class="wt-hero-actions">
           <a class="wt-button wt-button-main" [routerLink]="auth.signedIn() ? '/repairs' : '/login'">Request a repair <span aria-hidden="true">↗</span></a>
-          <a class="wt-button wt-button-outline" [routerLink]="auth.signedIn() ? (auth.canShop() ? '/shop' : '/dashboard') : '/register'">Browse accessories</a>
+          <a class="wt-button wt-button-outline" routerLink="/shop">Browse accessories</a>
         </div>
       </div>
     </section>
@@ -50,12 +50,12 @@
         <article class="wt-service-card">
           <div class="wt-card-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.65" stroke-linecap="round"><rect x="7" y="2.5" width="10" height="19" rx="2"/><path d="M10 18.5h4"/></svg></div>
           <h3>All-brand solutions</h3><p>Find parts and accessories for your exact device model.</p>
-          <a [routerLink]="auth.signedIn() ? (auth.canShop() ? '/shop' : '/dashboard') : '/register'">Explore store <span aria-hidden="true">↗</span></a>
+          <a routerLink="/shop">Explore store <span aria-hidden="true">↗</span></a>
         </article>
         <article class="wt-service-card">
           <div class="wt-card-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.65" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9h18M5 9l1 11h12l1-11M7 9l2-5h6l2 5M9 14h6"/></svg></div>
           <h3>Accessories</h3><p>Shop mobile essentials, with product and compatibility details.</p>
-          <a [routerLink]="auth.signedIn() ? (auth.canShop() ? '/shop' : '/dashboard') : '/register'">View products <span aria-hidden="true">↗</span></a>
+          <a routerLink="/shop">View products <span aria-hidden="true">↗</span></a>
         </article>
         <article class="wt-service-card">
           <div class="wt-card-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.65" stroke-linecap="round" stroke-linejoin="round"><path d="M4 5h16v13H8l-4 3V5Z"/><path d="M8 10h8m-8 4h5"/></svg></div>

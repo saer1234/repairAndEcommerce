@@ -17,6 +17,8 @@ export interface SupportLiveMessage {
 type ServerFrame =
   | { type: 'connected' }
   | { type: 'refresh'; companyId: number }
+  | { type: 'staff_availability'; companyId: number; online: boolean; availableAgents: number }
+  | { type: 'customer_presence'; companyId: number; customerId: number; online: boolean }
   | { type: 'message'; companyId: number; conversationId: number; message: SupportLiveMessage }
   | { type: 'ack'; requestId: string; message: SupportLiveMessage }
   | { type: 'error'; requestId?: string; message: string };
@@ -45,7 +47,10 @@ export class SupportRealtimeService {
     companyId: number,
     onRefresh: () => void,
     onState: (connected: boolean) => void,
-    onMessage: (message: SupportLiveMessage) => void
+    onMessage: (message: SupportLiveMessage) => void,
+    onCustomerPresence: (customerId: number, online: boolean) => void = () => {},
+    onStaffAvailability: (online: boolean, availableAgents: number) => void = () => {},
+    staffSessionId?: string
   ): () => void {
     // Only one active support subscription per Angular page.
     this.disconnect();
@@ -82,6 +87,7 @@ export class SupportRealtimeService {
         socket.onopen = () => {
           if (!active) { socket.close(); return; }
           retries = 0;
+          if (staffSessionId) socket.send(JSON.stringify({ type: 'staff_presence_bind', sessionId: staffSessionId }));
           onState(true);
           onRefresh(); // Resynchronize messages missed while disconnected.
         };
@@ -90,6 +96,8 @@ export class SupportRealtimeService {
           try {
             const frame = JSON.parse(String(event.data)) as ServerFrame;
             if (frame.type === 'refresh' && frame.companyId === companyId) onRefresh();
+            if (frame.type === 'staff_availability' && frame.companyId === companyId) onStaffAvailability(frame.online, frame.availableAgents);
+            if (frame.type === 'customer_presence' && frame.companyId === companyId) onCustomerPresence(frame.customerId, frame.online);
             if (frame.type === 'message' && frame.companyId === companyId) onMessage(frame.message);
             if (frame.type === 'ack') {
               const pending = this.pending.get(frame.requestId);

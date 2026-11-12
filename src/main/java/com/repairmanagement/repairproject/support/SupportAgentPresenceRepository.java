@@ -28,6 +28,10 @@ public interface SupportAgentPresenceRepository extends JpaRepository<SupportAge
                       @Param("sessionId") String sessionId);
 
     @Modifying
+    @Query("delete from SupportAgentPresence p where p.company.id = :companyId and p.user.id = :userId")
+    int deleteForMember(@Param("companyId") Long companyId, @Param("userId") Long userId);
+
+    @Modifying
     @Query("delete from SupportAgentPresence p where p.expiresAt < :before")
     int deleteExpired(@Param("before") LocalDateTime before);
 }

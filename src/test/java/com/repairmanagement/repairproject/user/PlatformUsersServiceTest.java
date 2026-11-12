@@ -15,7 +15,7 @@ import static org.mockito.Mockito.*;
 class PlatformUsersServiceTest {
     private final UserRepository users = mock(UserRepository.class);
     private final UserService userService = mock(UserService.class);
-    private final PlatformUsersService service = new PlatformUsersService(users, userService);
+    private final PlatformUsersService service = new PlatformUsersService(users, userService, mock(com.repairmanagement.repairproject.company.CompanyMemberRepository.class));
 
     @Test void companyOwnerCannotListEveryone() {
         when(userService.currentUser("owner@example.com")).thenReturn(

@@ -64,6 +64,14 @@ export class SupportPage {
   readonly busy = signal(false);
   readonly loading = signal(false);
   readonly realtimeConnected = signal(false);
+  // Immediate WS presence signal: do not wait for the 8-second database close.
+  // An empty map means the initial presence is unknown; CLOSED status is still enforced.
+  readonly customerPresence = signal<Record<number, boolean>>({});
+  readonly selectedClientOnline = computed(() => {
+    const c = this.selected();
+    if (!c || this.mode() !== 'staff') return true;
+    return this.customerPresence()[c.customerId] !== false;
+  });
   draft = '';
   offlineDraft = '';
   offlineReplyDraft = '';
@@ -87,8 +95,22 @@ export class SupportPage {
           const generation = this.loadGeneration;
           this.disconnectRealtime = this.realtime.connect(id,
             () => { if (generation === this.loadGeneration) this.refresh(true); },
-            connected => { if (generation === this.loadGeneration) this.realtimeConnected.set(connected); },
-            message => { if (generation === this.loadGeneration) this.receiveLiveMessage(message); });
+            connected => {
+              if (generation !== this.loadGeneration) return;
+              this.realtimeConnected.set(connected);
+              // A disconnected staff socket clears this page's presence on the server.
+              // Re-establish the lease promptly after a verified reconnect.
+              if (connected && mode === 'staff' && this.availableForChat()) this.heartbeat(true);
+            },
+            message => { if (generation === this.loadGeneration) this.receiveLiveMessage(message); },
+            (customerId, online) => {
+              if (generation !== this.loadGeneration || mode !== 'staff') return;
+              this.customerPresence.update(current => ({ ...current, [customerId]: online }));
+            },
+            (online, availableAgents) => {
+              if (generation === this.loadGeneration) this.availability.set({ online, availableAgents });
+            },
+            mode === 'staff' ? this.sessionId : undefined);
         }
         else this.resetPage();
       });
@@ -122,6 +144,7 @@ export class SupportPage {
   private resetPage(): void {
     this.disconnectRealtime?.(); this.disconnectRealtime = null;
     this.realtimeConnected.set(false);
+    this.customerPresence.set({});
     ++this.loadGeneration;
     this.availability.set(null); this.inbox.set([]); this.selected.set(null);
     this.messages.set([]); this.offlineMessages.set([]); this.selectedOffline.set(null);
@@ -137,18 +160,26 @@ export class SupportPage {
     if (mode === 'staff') {
       this.loadInbox(id, generation);
     } else {
-      this.api.get<SupportConversation | null>(`${this.base(id)}/mine`).subscribe({
-        next: conversation => {
-          if (generation !== this.loadGeneration) return;
-          this.loading.set(false); this.selected.set(conversation);
-          if (conversation) this.loadMessages(conversation.id, id);
-        },
-        error: () => {
-          if (generation !== this.loadGeneration) return;
-          this.loading.set(false); this.error.set('Unable to load your conversation.');
-        }
-      });
+      this.loadMine(id, generation);
     }
+  }
+
+  /** Resync the client conversation status when the socket reconnects or reopens it. */
+  private loadMine(id: number, generation = this.loadGeneration, silent = false): void {
+    this.api.get<SupportConversation | null>(`${this.base(id)}/mine`).subscribe({
+      next: conversation => {
+        if (generation !== this.loadGeneration || this.companyId() !== id || this.mode() !== 'client') return;
+        this.loading.set(false);
+        this.selected.set(conversation);
+        if (conversation) this.loadMessages(conversation.id, id, true);
+        else this.messages.set([]);
+      },
+      error: () => {
+        if (generation !== this.loadGeneration || silent) return;
+        this.loading.set(false);
+        this.error.set('Unable to load your conversation.');
+      }
+    });
   }
 
   private loadAvailability(id: number, generation = this.loadGeneration): void {
@@ -252,8 +283,7 @@ export class SupportPage {
     this.loadAvailability(id);
     this.loadOffline(id, mode);
     if (mode === 'staff') this.loadInbox(id, this.loadGeneration, silent);
-    else if (this.selected()) this.loadMessages(this.selected()!.id, id, silent);
-    else if (!silent) this.loadCompany(id, 'client');
+    else this.loadMine(id, this.loadGeneration, silent);
   }
 
   toggleAvailability(): void {
@@ -299,14 +329,13 @@ export class SupportPage {
     this.presenceCompany = null; this.availableForChat.set(false);
     this.api.delete(`${this.base(companyId)}/presence/${this.sessionId}`).subscribe({ error: () => {} });
     if (companyId === this.companyId()) {
-      this.availability.set(null);
       this.loadAvailability(companyId);
     }
   }
 
   start(): void {
     const id = this.companyId();
-    if (!id || this.busy() || !this.availability()?.online) return;
+    if (!id || this.busy() || !this.availability()?.online || !this.realtimeConnected()) return;
     this.busy.set(true); this.error.set('');
     this.api.post<SupportConversation>(`${this.base(id)}/conversations`, {}).subscribe({
       next: conversation => {
@@ -323,7 +352,7 @@ export class SupportPage {
   send(): void {
     const id = this.companyId(); const conversation = this.selected();
     const body = this.draft.trim();
-    if (!id || !conversation || !this.availability()?.online ||
+    if (!id || !conversation || conversation.status !== 'OPEN' || !this.selectedClientOnline() || !this.realtimeConnected() || !this.availability()?.online ||
         (this.mode() === 'staff' && !this.availableForChat()) ||
         !body || body.length > 2000 || this.busy()) return;
     this.busy.set(true); this.error.set(''); this.notice.set('');
@@ -389,7 +418,8 @@ export class SupportPage {
 
   setStatus(status: 'OPEN' | 'CLOSED'): void {
     const id = this.companyId(); const conversation = this.selected();
-    if (!id || !conversation || !this.canClose() || this.busy()) return;
+    if (!id || !conversation || !this.canClose() || this.busy() ||
+        (status === 'OPEN' && !this.realtimeConnected())) return;
     this.busy.set(true); this.error.set('');
     this.api.patch<SupportConversation>(`${this.base(id)}/conversations/${conversation.id}/status`, { status }).subscribe({
       next: value => {

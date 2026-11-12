@@ -21,3 +21,5 @@
 .users-pager>div{display:flex;gap:8px}
 .users-empty{padding:25px;text-align:center;color:#667c94}
 @media(max-width:650px){.users-panel{padding:14px}.users-filters{align-items:stretch}.users-filters label,.users-filters label.users-size{flex:1 1 100%;margin:0}.users-filters button{flex:1 1 44%}.users-heading h1{font-size:1.5rem}}
+
+.v22-platform-role{padding:8px;border:1px solid #c9d7e9;border-radius:8px;background:#fff;color:#152c4b;min-width:110px}

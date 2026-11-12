@@ -54,6 +54,24 @@ export class CompaniesPage {
       .subscribe({next: () => {this.message.set('Team member added'); this.members();},
         error: () => this.error.set('Unable to add member. Verify email and permissions.')});
   }
+  changeMemberRole(member: CompanyMember, role: CompanyMember['role']): void {
+    const id = this.ctx.managedSelected();
+    if (!id || this.ctx.role() !== 'OWNER' || member.role === role) return;
+    this.error.set(''); this.message.set('');
+    this.api.patch<CompanyMember>(`/companies/${id}/members/${member.userId}/role`, {role})
+      .subscribe({next: () => {this.message.set('Role updated; active chat access refreshed'); this.members();},
+        error: e => {this.error.set(e.error?.detail || 'Unable to update company role'); this.members();}});
+  }
+  removeMember(member: CompanyMember): void {
+    const id = this.ctx.managedSelected();
+    if (!id || this.ctx.role() !== 'OWNER') return;
+    if (!confirm(`Remove ${member.fullName} from this company? Their support chat access will end.`)) return;
+    this.error.set(''); this.message.set('');
+    this.api.delete(`/companies/${id}/members/${member.userId}`).subscribe({
+      next: () => {this.message.set('Member removed and chat access revoked'); this.members();},
+      error: e => this.error.set(e.error?.detail || 'Unable to remove member')
+    });
+  }
   members(): void {
     const id = this.ctx.managedSelected();
     if (!id || !this.ctx.canManage()) return;
