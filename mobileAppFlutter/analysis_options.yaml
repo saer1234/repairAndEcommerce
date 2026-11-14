@@ -1,0 +1,8 @@
+include: package:flutter_lints/flutter.yaml
+analyzer:
+  errors:
+    invalid_use_of_protected_member: warning
+    deprecated_member_use: ignore
+  exclude:
+    - build/**
+    - android/**

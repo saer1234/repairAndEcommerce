@@ -1,0 +1,102 @@
+import 'package:flutter/widgets.dart';
+import 'app_state.dart';
+
+class AppScope extends InheritedNotifier<AppState> {
+  const AppScope({super.key, required AppState state, required super.child})
+      : super(notifier: state);
+  static AppState of(BuildContext context) {
+    final scope = context.dependOnInheritedWidgetOfExactType<AppScope>();
+    assert(scope != null, 'Missing AppScope');
+    return scope!.notifier!;
+  }
+}
+
+/// All UI actions use a stable key; unknown labels intentionally fall back to English.
+const ar = <String, String>{
+  'Store': 'المتجر', 'Orders': 'الطلبات', 'Repairs': 'الصيانة', 'Support': 'الدعم',
+  'Account': 'الحساب', 'Workspace': 'الإدارة', 'WolfTech': 'وولف تك',
+  'We hunt. We fix.': 'نبحث عن المشكلة ونصلحها',
+  'Your technology, cared for.': 'نعتني بتقنيتك',
+  'Parts, repairs and support in one place': 'القطع والصيانة والدعم في مكان واحد',
+  'Browse our collection': 'تصفح منتجاتنا', 'Featured products': 'المنتجات المعروضة',
+  'Shop by company': 'اختر المتجر', 'Search products': 'ابحث عن المنتجات',
+  'All': 'الكل', 'Out of stock': 'نفد من المخزون', 'In stock': 'متوفر',
+  'Add to cart': 'أضف إلى السلة', 'Sign in to buy': 'سجّل الدخول للشراء',
+  'Customer accounts only': 'للعملاء فقط', 'Details': 'التفاصيل',
+  'Cart': 'السلة', 'Checkout': 'إتمام الطلب', 'Quantity': 'الكمية',
+  'Remove': 'إزالة', 'Total': 'الإجمالي', 'Subtotal': 'المجموع الفرعي',
+  'Continue shopping': 'متابعة التسوق', 'Your cart is empty': 'سلتك فارغة',
+  'Pickup': 'استلام من المتجر', 'Delivery': 'توصيل',
+  'Delivery is unavailable': 'خدمة التوصيل غير متاحة',
+  'Full address': 'العنوان الكامل', 'City': 'المدينة', 'Country': 'الدولة',
+  'Phone': 'الهاتف', 'Postal code': 'الرمز البريدي', 'Delivery notes': 'ملاحظات التوصيل',
+  'Latitude': 'خط العرض', 'Longitude': 'خط الطول',
+  'Location coordinates are required for delivery': 'إحداثيات الموقع مطلوبة للتوصيل',
+  'Place order': 'تأكيد الطلب', 'Order placed': 'تم إرسال الطلب',
+  'My orders': 'طلباتي', 'Order details': 'تفاصيل الطلب', 'No orders yet': 'لا توجد طلبات بعد',
+  'Status': 'الحالة', 'Items': 'المنتجات', 'Delivery fee': 'رسوم التوصيل',
+  'Order number': 'رقم الطلب', 'Cancel order': 'إلغاء الطلب',
+  'Complete order': 'إكمال الطلب', 'Refresh': 'تحديث', 'Retry': 'إعادة المحاولة',
+  'Sign in': 'تسجيل الدخول', 'Create an account': 'إنشاء حساب',
+  'Create account': 'إنشاء حساب', 'Full name': 'الاسم الكامل', 'Email': 'البريد الإلكتروني',
+  'Password': 'كلمة المرور', 'Confirm password': 'تأكيد كلمة المرور',
+  'Owner account': 'حساب مالك', 'Customer account': 'حساب عميل',
+  'Choose account type': 'اختر نوع الحساب', 'Already registered?': 'لديك حساب بالفعل؟',
+  'New to WolfTech?': 'جديد في وولف تك؟', 'Back to store': 'العودة إلى المتجر',
+  'Log out': 'تسجيل الخروج', 'Language': 'اللغة', 'Arabic': 'العربية', 'English': 'English',
+  'Welcome back': 'أهلاً بعودتك', 'Start your account': 'أنشئ حسابك',
+  'Invalid email': 'البريد الإلكتروني غير صحيح', 'Password must be at least 8 characters': 'يجب أن تتكون كلمة المرور من ٨ أحرف على الأقل',
+  'Passwords do not match': 'كلمتا المرور غير متطابقتين', 'Required': 'حقل مطلوب',
+  'Please sign in to continue': 'يرجى تسجيل الدخول للمتابعة',
+  'Browse as guest': 'تصفح كزائر', 'Account created. Please sign in.': 'تم إنشاء الحساب. يرجى تسجيل الدخول.',
+  'Something went wrong': 'حدث خطأ', 'Try again': 'حاول مجددًا',
+  'No products found': 'لا توجد منتجات', 'No companies available': 'لا توجد متاجر متاحة',
+  'Company': 'الشركة', 'My repairs': 'طلبات الصيانة', 'Track repairs': 'تتبع الصيانة',
+  'New repair request': 'طلب صيانة جديد', 'Device type': 'نوع الجهاز', 'Brand': 'العلامة التجارية',
+  'Model': 'الطراز', 'Describe the problem': 'اشرح المشكلة',
+  'Submit repair': 'إرسال طلب الصيانة', 'No repairs yet': 'لا توجد صيانة بعد',
+  'Timeline': 'التحديثات', 'Quoted total': 'السعر المقدر',
+  'Customer name': 'اسم العميل', 'Customer': 'العميل',
+  'Active conversations': 'المحادثات النشطة', 'Messages': 'الرسائل',
+  'Live chat': 'محادثة مباشرة', 'Send': 'إرسال', 'Write a message': 'اكتب رسالة',
+  'Chat ended': 'انتهت المحادثة', 'Customer offline': 'العميل غير متصل',
+  'Staff offline': 'فريق الدعم غير متصل', 'Start live chat': 'ابدأ محادثة مباشرة',
+  'Available for chat': 'متاح للدردشة', 'Go offline': 'غير متاح',
+  'Offline inquiry': 'رسالة غير متصلة', 'Send inquiry': 'إرسال الرسالة',
+  'Offline messages': 'الرسائل غير المتصلة', 'Reply': 'رد', 'Reply sent': 'تم إرسال الرد',
+  'No conversations yet': 'لا توجد محادثات', 'Connection lost': 'انقطع الاتصال',
+  'Connected': 'متصل', 'Not connected': 'غير متصل',
+  'Inventory': 'المخزون', 'Manage repairs': 'إدارة الصيانة',
+  'Manage orders': 'إدارة الطلبات', 'Team members': 'أعضاء الفريق',
+  'Add member': 'إضافة عضو', 'Member email': 'بريد العضو', 'Role': 'الدور',
+  'Owner': 'مالك', 'Manager': 'مدير', 'Employee': 'موظف',
+  'Change role': 'تغيير الدور', 'Remove member': 'إزالة العضو',
+  'Add product': 'إضافة منتج', 'SKU': 'رمز المنتج', 'Name': 'الاسم',
+  'Description': 'الوصف', 'Category': 'الفئة', 'Cost price': 'سعر الشراء',
+  'Selling price': 'سعر البيع', 'Opening stock': 'المخزون الأولي',
+  'Save': 'حفظ', 'Cancel': 'إلغاء', 'Stock': 'المخزون',
+  'Diagnosing': 'قيد الفحص', 'In progress': 'قيد الصيانة', 'Completed': 'مكتمل',
+  'Change status': 'تغيير الحالة', 'Customer update': 'تحديث للعميل',
+  'Internal note': 'ملاحظة داخلية', 'Publish update': 'نشر التحديث',
+  'Business dashboard': 'لوحة إدارة الأعمال', 'Manage company': 'إدارة الشركة',
+  'Create company': 'إنشاء شركة', 'Company name': 'اسم الشركة',
+  'Currency': 'العملة', 'Address': 'العنوان',
+  'Select company': 'اختر الشركة', 'No team members': 'لا يوجد أعضاء في الفريق',
+  'Company overview': 'نظرة عامة على الشركة', 'Sales': 'المبيعات',
+  'Financial overview': 'الملخص المالي',
+  'Confirm action': 'تأكيد الإجراء', 'Are you sure?': 'هل أنت متأكد؟',
+  'Open': 'مفتوح', 'Closed': 'مغلق', 'Pending': 'قيد الانتظار',
+  'Invoices': 'الفواتير', 'Invoice': 'فاتورة', 'No invoices yet': 'لا توجد فواتير',
+  'Tax': 'ضريبة', 'Paid': 'مدفوع', 'Outstanding': 'مستحق',
+  'Verify': 'تأكيد', 'Reject': 'رفض', 'Restock': 'إعادة تعبئة المخزون',
+  'Restock quantity': 'كمية إعادة التعبئة', 'Submit transfer': 'تقديم الحوالة',
+  'Whish transfer reference': 'رقم مرجع حوالة ويش',
+  'Available': 'متاح', 'Use my current location': 'استخدم موقعي الحالي',
+  'Product photo': 'صورة المنتج', 'Choose image': 'اختر صورة', 'Take photo': 'التقاط صورة', 'You need a customer account to buy items': 'تحتاج حساب عميل لشراء المنتجات',
+  'Open support page to receive live messages': 'افتح صفحة الدعم لاستقبال الرسائل المباشرة',
+  'This feature requires a live backend connection': 'تتطلب هذه الميزة اتصالاً بالخادم',
+  'No internet connection': 'لا يوجد اتصال بالإنترنت',
+};
+
+String tr(BuildContext context, String key) =>
+    AppScope.of(context).language == 'ar' ? (ar[key] ?? key) : key;
